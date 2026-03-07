@@ -183,7 +183,23 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
                 key={tool.id}
                 className="border-b border-zinc-800/50 hover:bg-zinc-900/30 transition-colors"
               >
-                <td className="px-4 py-3 text-sm text-zinc-500">{index + 1}</td>
+                <td className="px-4 py-3 text-sm">
+                  {index < 3 ? (
+                    <span
+                      className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                        index === 0
+                          ? "bg-amber-500/20 text-amber-400"
+                          : index === 1
+                            ? "bg-zinc-400/20 text-zinc-300"
+                            : "bg-orange-600/20 text-orange-400"
+                      }`}
+                    >
+                      {index + 1}
+                    </span>
+                  ) : (
+                    <span className="text-zinc-500 pl-1.5">{index + 1}</span>
+                  )}
+                </td>
                 <td className="px-4 py-3">
                   <div>
                     <div className="flex items-center gap-2">
@@ -229,9 +245,19 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <span className="text-sm font-semibold text-white tabular-nums">
-                    {tool.overallScore.toFixed(1)}
-                  </span>
+                  <div className="relative inline-flex items-center gap-2">
+                    <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden hidden sm:block">
+                      <div
+                        className="h-full bg-emerald-500/60 rounded-full"
+                        style={{
+                          width: `${Math.min(100, (tool.overallScore / (filteredTools[0]?.overallScore || 1)) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-sm font-semibold text-white tabular-nums">
+                      {tool.overallScore.toFixed(1)}
+                    </span>
+                  </div>
                 </td>
               </tr>
             ))}
