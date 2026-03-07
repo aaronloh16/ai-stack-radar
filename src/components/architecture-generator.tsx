@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Loader2, Copy, Check, Share2, ArrowRight } from "lucide-react";
 
 interface ArchResult {
@@ -24,37 +24,40 @@ export function ArchitectureGenerator() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const diagramRef = useRef<HTMLDivElement>(null);
 
+  const renderMermaid = useCallback(
+    async function renderMermaid() {
+      if (!diagramRef.current || !result?.diagram) return;
+      try {
+        const mermaid = (await import("mermaid")).default;
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: "dark",
+          themeVariables: {
+            primaryColor: "#3f3f46",
+            primaryTextColor: "#fafafa",
+            primaryBorderColor: "#52525b",
+            lineColor: "#71717a",
+            secondaryColor: "#27272a",
+            tertiaryColor: "#18181b",
+          },
+        });
+        const { svg } = await mermaid.render("mermaid-diagram", result.diagram);
+        diagramRef.current.innerHTML = svg;
+      } catch (err) {
+        console.error("Mermaid render error:", err);
+        if (diagramRef.current) {
+          diagramRef.current.innerHTML = `<pre class="text-sm text-zinc-400 p-4 bg-zinc-900 rounded-lg overflow-x-auto">${result?.diagram}</pre>`;
+        }
+      }
+    },
+    [result]
+  );
+
   useEffect(() => {
     if (result?.diagram && diagramRef.current) {
       renderMermaid();
     }
-  }, [result?.diagram]);
-
-  async function renderMermaid() {
-    if (!diagramRef.current || !result?.diagram) return;
-    try {
-      const mermaid = (await import("mermaid")).default;
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: "dark",
-        themeVariables: {
-          primaryColor: "#3f3f46",
-          primaryTextColor: "#fafafa",
-          primaryBorderColor: "#52525b",
-          lineColor: "#71717a",
-          secondaryColor: "#27272a",
-          tertiaryColor: "#18181b",
-        },
-      });
-      const { svg } = await mermaid.render("mermaid-diagram", result.diagram);
-      diagramRef.current.innerHTML = svg;
-    } catch (err) {
-      console.error("Mermaid render error:", err);
-      if (diagramRef.current) {
-        diagramRef.current.innerHTML = `<pre class="text-sm text-zinc-400 p-4 bg-zinc-900 rounded-lg overflow-x-auto">${result?.diagram}</pre>`;
-      }
-    }
-  }
+  }, [result?.diagram, renderMermaid]);
 
   async function handleGenerate() {
     if (!prompt.trim()) return;

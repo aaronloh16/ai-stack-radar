@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CATEGORIES } from "@/lib/categories";
-import { ArrowUpRight, Star, GitFork, TrendingUp, ExternalLink } from "lucide-react";
+import { ArrowUpRight, Star, TrendingUp } from "lucide-react";
 
 interface Tool {
   id: number;

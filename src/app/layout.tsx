@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -16,16 +17,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} bg-zinc-950 text-zinc-100 min-h-screen`}>
         <nav className="border-b border-zinc-800 px-6 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <a href="/" className="text-xl font-bold tracking-tight">
+            <Link href="/" className="text-xl font-bold tracking-tight">
               AI Stack Radar
-            </a>
+            </Link>
             <div className="flex gap-6 text-sm text-zinc-400">
-              <a href="/leaderboard" className="hover:text-zinc-100 transition-colors">
+              <Link href="/leaderboard" className="hover:text-zinc-100 transition-colors">
                 Leaderboard
-              </a>
-              <a href="/generate" className="hover:text-zinc-100 transition-colors">
+              </Link>
+              <Link href="/generate" className="hover:text-zinc-100 transition-colors">
                 Generate Stack
-              </a>
+              </Link>
               <a
                 href="https://github.com/yourusername/ai-stack-radar"
                 target="_blank"
