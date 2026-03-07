@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
-    "@supabase/supabase-js": "^2.49.1",
     "drizzle-orm": "^0.39.3",
     "lucide-react": "^0.474.0",
     "mermaid": "^11.4.1",

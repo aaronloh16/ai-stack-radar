@@ -7,8 +7,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm run dev              # Start Next.js dev server
 npm run build            # Production build
-npm run lint             # ESLint via Next.js
-npm run db:push          # Push Drizzle schema to Supabase Postgres (no migration files)
+npm run lint             # ESLint
+npm run test             # Vitest (run once)
+npm run test:watch       # Vitest (watch mode)
+npm run db:push          # Push Drizzle schema to Neon Postgres (no migration files)
 npm run db:generate      # Generate Drizzle migration files
 npm run db:migrate       # Apply migrations
 npm run db:studio        # Open Drizzle Studio for DB inspection
@@ -41,7 +43,7 @@ overall_score = star_velocity + hn_boost
 
 ### Key Patterns
 
-- **Database:** Drizzle ORM with `postgres` driver connecting to Supabase Postgres. Schema in `src/lib/schema.ts`. All snapshot tables use unique `(toolId, collectedAt)` indices for time-series data. Latest values are queried via `orderBy(desc(collectedAt)).limit(1)`.
+- **Database:** Drizzle ORM with `postgres` driver connecting to Neon Postgres. Schema in `src/lib/schema.ts`. All snapshot tables use unique `(toolId, collectedAt)` indices for time-series data. Latest values are queried via `orderBy(desc(collectedAt)).limit(1)`.
 - **Anthropic API:** The generate endpoint uses `tool_choice: { type: "tool" }` to force structured output (summary, tools[], mermaid diagram, buildSteps[], tradeoffs[]). Model: `claude-sonnet-4-20250514`.
 - **Mermaid diagrams:** Rendered client-side via dynamic import. Initialized with dark theme. Falls back to raw `<pre>` on render failure.
 - **Shared stacks:** Stored with nanoid(10) IDs in `shared_stacks` table. Shareable at `/stack/[id]`.
@@ -51,10 +53,9 @@ overall_score = star_velocity + hn_boost
 
 All required in `.env.local` (see `.env.example`):
 
-- `DATABASE_URL` — Supabase Postgres connection string (pooled/transaction mode)
+- `DATABASE_URL` — Neon Postgres connection string
 - `GITHUB_TOKEN` — GitHub fine-grained PAT (no special permissions, just for rate limits)
 - `ANTHROPIC_API_KEY` — for architecture generator
-- `NEXT_PUBLIC_SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` — Supabase project config
 
 ## Development Workflow
 

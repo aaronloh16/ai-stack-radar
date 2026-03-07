@@ -4,9 +4,7 @@ import toolsData from "@/data/tools.json";
 
 describe("categories", () => {
   it("every tool in tools.json has a matching category", () => {
-    const missing = toolsData.filter(
-      (tool) => !CATEGORIES[tool.category]
-    );
+    const missing = toolsData.filter((tool) => !CATEGORIES[tool.category]);
     expect(missing).toEqual([]);
   });
 
@@ -15,7 +13,7 @@ describe("categories", () => {
   });
 
   it("all category labels are non-empty strings", () => {
-    for (const [key, label] of Object.entries(CATEGORIES)) {
+    for (const label of Object.values(CATEGORIES)) {
       expect(label.length).toBeGreaterThan(0);
       expect(typeof label).toBe("string");
     }

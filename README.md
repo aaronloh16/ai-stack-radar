@@ -1,6 +1,6 @@
 # AI Stack Radar
 
-A tool that combines real-time developer sentiment analysis with AI-powered architecture recommendations.
+AI dev tool leaderboard + architecture generator backed by live developer sentiment data.
 
 ## Features
 
@@ -10,10 +10,8 @@ Ranks AI dev tools by real developer sentiment using:
 
 - GitHub star velocity
 - Hacker News activity
-- Reddit discussions
-- X (Twitter) mentions
 
-Updated daily with automated data collection.
+Updated daily via GitHub Actions.
 
 ### Architecture Generator
 
@@ -27,17 +25,38 @@ Powered by Anthropic's Claude with live leaderboard data as context.
 
 ## Tech Stack
 
-- **Data Collection**: Python scripts
-- **Database**: Supabase
-- **Automation**: GitHub Actions (daily cron jobs)
-- **Frontend**: Next.js + Tailwind CSS
-- **AI**: Anthropic API
+- **Frontend**: Next.js 16 + Tailwind CSS v4
+- **Database**: Neon Postgres + Drizzle ORM
+- **Data Collection**: TypeScript scripts (GitHub API, HN Algolia API)
+- **Automation**: GitHub Actions (daily cron)
+- **AI**: Anthropic API (Claude with structured output)
 
-## Development Roadmap
+## Setup
 
-1. **Data Pipeline**: GitHub API → Supabase integration
-2. **Leaderboard Frontend**: Display and visualization
-3. **Architecture Generator**: AI-powered recommendations
+1. Clone the repo and install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Copy `.env.example` to `.env.local` and fill in your keys (see `.env.example` for details).
+
+3. Push the database schema:
+
+   ```bash
+   npm run db:push
+   ```
+
+4. Run the first data collection:
+
+   ```bash
+   npm run collect:github
+   ```
+
+5. Start the dev server:
+   ```bash
+   npm run dev
+   ```
 
 ## Project Philosophy
 
@@ -45,4 +64,4 @@ Open source scoring algorithm to maintain community trust and drive adoption. De
 
 ---
 
-Built in public 🚀
+Built in public.
