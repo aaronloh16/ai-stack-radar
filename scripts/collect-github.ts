@@ -3,6 +3,11 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, desc } from "drizzle-orm";
 import { tools, githubSnapshots, momentumScores } from "../src/lib/schema";
 import toolsData from "../src/data/tools.json";
+import {
+  calculateStarVelocity,
+  estimateInitialVelocity,
+  roundScore,
+} from "../src/lib/scoring";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -117,37 +122,27 @@ async function calculateMomentumScores() {
     let starVelocity = 0;
 
     if (snapshots.length === 2) {
-      // snapshots[0] = newest, snapshots[1] = older (desc order)
       const newer = snapshots[0];
       const older = snapshots[1];
       const timeDiffMs =
         new Date(newer.collectedAt).getTime() - new Date(older.collectedAt).getTime();
-      const timeDiffDays = timeDiffMs / (1000 * 60 * 60 * 24);
-      if (timeDiffDays > 0) {
-        starVelocity = (newer.stars - older.stars) / timeDiffDays;
-      }
+      starVelocity = calculateStarVelocity(newer.stars, older.stars, timeDiffMs);
     }
 
-    // For first run, estimate velocity from total stars / repo age
-    // This gives a baseline that gets refined with daily collection
     if (snapshots.length === 1) {
-      // Use a rough estimate: assume repo is ~2 years old on average
-      starVelocity = snapshots[0].stars / 730;
+      starVelocity = estimateInitialVelocity(snapshots[0].stars);
     }
 
-    // Overall score = weighted composite
-    // Star velocity is the primary signal for now
-    // HN data gets factored in by the HN collector
     const overallScore = starVelocity;
 
     await db.insert(momentumScores).values({
       toolId: tool.id,
-      starVelocity: Math.round(starVelocity * 100) / 100,
+      starVelocity: roundScore(starVelocity),
       hnMentions7d: 0,
       hnPoints7d: 0,
       npmDownloads7d: 0,
       pypiDownloads7d: 0,
-      overallScore: Math.round(overallScore * 100) / 100,
+      overallScore: roundScore(overallScore),
     });
 
     console.log(
