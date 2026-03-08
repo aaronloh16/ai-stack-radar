@@ -15,20 +15,14 @@ import {
   Bot,
   Server,
   Workflow,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
 import { MermaidDiagram } from "@/components/mermaid-diagram";
-
-interface ArchResult {
-  summary: string;
-  tools: Array<{
-    name: string;
-    category: string;
-    reason: string;
-  }>;
-  diagram: string;
-  buildSteps: string[];
-  tradeoffs: string[];
-}
+import {
+  useGenerateStream,
+  type GenerateStatus,
+} from "@/hooks/useGenerateStream";
 
 const QUICK_PROMPTS = [
   {
@@ -57,83 +51,98 @@ const QUICK_PROMPTS = [
   },
 ];
 
-function SkeletonLoader() {
+const GENERATION_STAGES: Array<{
+  key: GenerateStatus;
+  label: string;
+}> = [
+  { key: "selecting_tools", label: "Designing architecture" },
+  { key: "generating_diagram", label: "Generating diagram" },
+  { key: "validating_diagram", label: "Validating diagram" },
+];
+
+function getStageState(
+  stageKey: GenerateStatus,
+  currentStatus: GenerateStatus
+): "completed" | "active" | "pending" {
+  const order: GenerateStatus[] = [
+    "started",
+    "selecting_tools",
+    "tools_complete",
+    "generating_diagram",
+    "validating_diagram",
+    "repairing_diagram",
+    "complete",
+  ];
+  const currentIdx = order.indexOf(currentStatus);
+  const stageIdx = order.indexOf(stageKey);
+
+  if (currentIdx > stageIdx) return "completed";
+  if (currentIdx === stageIdx) return "active";
+  // tools_complete is between selecting_tools and generating_diagram
+  if (stageKey === "selecting_tools" && currentStatus === "tools_complete")
+    return "completed";
+  if (stageKey === "validating_diagram" && currentStatus === "repairing_diagram")
+    return "active";
+  return "pending";
+}
+
+function GenerationProgress({
+  status,
+  message,
+}: {
+  status: GenerateStatus;
+  message: string;
+}) {
   return (
-    <div className="mt-8 space-y-8 animate-pulse">
-      {/* Summary skeleton */}
-      <div className="space-y-2">
-        <div className="h-4 bg-zinc-800 rounded-lg w-3/4" />
-        <div className="h-4 bg-zinc-800 rounded-lg w-1/2" />
-      </div>
-
-      {/* Tools skeleton */}
-      <div>
-        <div className="h-5 bg-zinc-800 rounded-lg w-40 mb-4" />
-        <div className="space-y-3">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="p-4 border border-zinc-800 rounded-xl">
-              <div className="h-4 bg-zinc-800 rounded w-48 mb-2" />
-              <div className="h-3 bg-zinc-800/60 rounded w-full" />
+    <div className="mt-8 p-6 border border-zinc-800 rounded-xl bg-zinc-900/30">
+      <div className="space-y-4">
+        {GENERATION_STAGES.map((stage) => {
+          const state = getStageState(stage.key, status);
+          return (
+            <div key={stage.key} className="flex items-center gap-3">
+              {state === "completed" ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              ) : state === "active" ? (
+                <Loader2 className="w-5 h-5 text-white animate-spin shrink-0" />
+              ) : (
+                <Circle className="w-5 h-5 text-zinc-700 shrink-0" />
+              )}
+              <span
+                className={
+                  state === "completed"
+                    ? "text-zinc-400"
+                    : state === "active"
+                      ? "text-white font-medium"
+                      : "text-zinc-600"
+                }
+              >
+                {stage.label}
+              </span>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
-
-      {/* Diagram skeleton */}
-      <div>
-        <div className="h-5 bg-zinc-800 rounded-lg w-48 mb-4" />
-        <div className="h-64 border border-zinc-800 rounded-xl bg-zinc-900/30" />
-      </div>
-
-      {/* Build steps skeleton */}
-      <div>
-        <div className="h-5 bg-zinc-800 rounded-lg w-32 mb-4" />
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex gap-3">
-              <div className="w-7 h-7 rounded-full bg-zinc-800 shrink-0" />
-              <div className="h-4 bg-zinc-800/60 rounded w-full mt-1" />
-            </div>
-          ))}
-        </div>
-      </div>
+      <p className="mt-4 text-sm text-zinc-500">{message}</p>
     </div>
   );
 }
 
 export function ArchitectureGenerator() {
   const [prompt, setPrompt] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<ArchResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const { state, generate } = useGenerateStream();
+
+  const loading =
+    state.status !== "idle" &&
+    state.status !== "complete" &&
+    state.status !== "error";
+  const result = state.result;
 
   async function handleGenerate() {
     if (!prompt.trim()) return;
-    setLoading(true);
-    setError(null);
-    setResult(null);
     setShareUrl(null);
-
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: prompt.trim() }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to generate architecture");
-      }
-
-      const data = await res.json();
-      setResult(data.result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
+    generate(prompt);
   }
 
   async function handleCopyMarkdown() {
@@ -240,14 +249,16 @@ Generated by [AI Stack Radar](https://ai-stack-radar.vercel.app) — architectur
         </div>
       </div>
 
-      {error && (
+      {state.status === "error" && (
         <div className="mt-6 p-4 bg-red-950/50 border border-red-900 rounded-xl text-red-300 text-sm">
-          {error}
+          {state.error}
         </div>
       )}
 
-      {/* Skeleton loader */}
-      {loading && <SkeletonLoader />}
+      {/* Progressive generation status */}
+      {loading && (
+        <GenerationProgress status={state.status} message={state.message} />
+      )}
 
       {/* Results */}
       {result && (
