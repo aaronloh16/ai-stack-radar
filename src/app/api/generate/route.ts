@@ -3,9 +3,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
 import { tools, momentumScores, githubSnapshots } from "@/lib/schema";
 import { desc, eq } from "drizzle-orm";
+import {
+  validateMermaidSyntax,
+  stripMermaidCodeFences,
+} from "@/lib/mermaid-validate";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const anthropic = new Anthropic();
 
@@ -159,7 +163,63 @@ Project description: ${prompt}`,
       );
     }
 
-    return NextResponse.json({ result: toolUseBlock.input });
+    const result = toolUseBlock.input as Record<string, unknown>;
+    let diagram = stripMermaidCodeFences(String(result.diagram ?? ""));
+
+    // Validate Mermaid syntax and attempt auto-repair if invalid
+    const validation = await validateMermaidSyntax(diagram);
+    if (!validation.valid) {
+      const MAX_FIX_ATTEMPTS = 3;
+      for (let attempt = 1; attempt <= MAX_FIX_ATTEMPTS; attempt++) {
+        console.log(
+          `Mermaid repair attempt ${attempt}/${MAX_FIX_ATTEMPTS}: ${validation.error}`
+        );
+        const fixResponse = await anthropic.messages.create({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 2048,
+          messages: [
+            {
+              role: "user",
+              content: `Fix this Mermaid.js diagram syntax error. Return ONLY the corrected Mermaid code — no explanation, no markdown fences.
+
+Broken diagram:
+${diagram}
+
+Parser error:
+${validation.error}
+
+Syntax rules to follow:
+1. Quote all node labels containing special characters (parentheses, slashes, brackets, dots).
+2. Do not apply classDef styles in subgraph declarations.
+3. No spaces between pipe characters and edge labels.
+4. Do not give subgraphs an alias.
+5. Do not include %%{init:...}%% directives.
+Keep the diagram meaning and structure intact. Only fix the syntax.`,
+            },
+          ],
+        });
+
+        const fixedText = fixResponse.content
+          .filter((b): b is Anthropic.TextBlock => b.type === "text")
+          .map((b) => b.text)
+          .join("");
+        diagram = stripMermaidCodeFences(fixedText);
+
+        const revalidation = await validateMermaidSyntax(diagram);
+        if (revalidation.valid) {
+          console.log(`Mermaid repair succeeded on attempt ${attempt}`);
+          break;
+        }
+        if (attempt === MAX_FIX_ATTEMPTS) {
+          console.warn(
+            "Mermaid repair failed after max attempts, using last attempt"
+          );
+        }
+      }
+    }
+
+    result.diagram = diagram;
+    return NextResponse.json({ result });
   } catch (error) {
     console.error("Generate API error:", error);
     return NextResponse.json(
