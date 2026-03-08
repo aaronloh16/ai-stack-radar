@@ -1,10 +1,9 @@
 import { LeaderboardTable } from "@/components/leaderboard-table";
+import { Trophy } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 async function getLeaderboardData() {
-  // In production, this would fetch from the API
-  // For SSR, we query the DB directly
   try {
     const { db } = await import("@/lib/db");
     const { tools, momentumScores, githubSnapshots } = await import("@/lib/schema");
@@ -51,7 +50,6 @@ async function getLeaderboardData() {
     leaderboard.sort((a, b) => b.overallScore - a.overallScore);
     return leaderboard;
   } catch {
-    // If DB isn't connected yet, return empty
     return [];
   }
 }
@@ -61,21 +59,39 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Momentum Leaderboard</h1>
-        <p className="text-zinc-400 mt-2">
+      <div className="mb-10 animate-fade-in-up">
+        <div className="flex items-center gap-3 mb-3">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.2)" }}
+          >
+            <Trophy className="w-4.5 h-4.5" style={{ color: "#fbbf24" }} />
+          </div>
+          <h1
+            className="text-3xl font-bold tracking-tight"
+            style={{ fontFamily: "var(--font-syne), sans-serif", letterSpacing: "-0.03em" }}
+          >
+            Momentum Leaderboard
+          </h1>
+        </div>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           AI dev tools ranked by real developer sentiment. Updated daily.
         </p>
       </div>
 
       {tools.length > 0 ? (
-        <LeaderboardTable initialTools={tools} />
+        <div className="animate-fade-in-up delay-100">
+          <LeaderboardTable initialTools={tools} />
+        </div>
       ) : (
-        <div className="text-center py-24 text-zinc-500">
-          <p className="text-lg mb-2">No data yet</p>
+        <div className="text-center py-24" style={{ color: "var(--text-tertiary)" }}>
+          <p className="text-base mb-2" style={{ color: "var(--text-secondary)" }}>No data yet</p>
           <p className="text-sm">
             Run{" "}
-            <code className="bg-zinc-800 px-2 py-0.5 rounded">
+            <code
+              className="px-2 py-0.5 rounded-lg text-xs"
+              style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)", color: "var(--accent-cyan)", fontFamily: "var(--font-jetbrains-mono), monospace" }}
+            >
               npm run collect:github
             </code>{" "}
             to seed the leaderboard.

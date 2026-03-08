@@ -86,25 +86,37 @@ export default async function SharedStackPage({
   const markdown = buildMarkdown(stack.prompt, result);
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-      <div className="mb-8 flex items-start justify-between gap-4">
+    <div className="max-w-4xl mx-auto px-6 py-12 animate-fade-in">
+      <div className="mb-10 flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-zinc-500 mb-2">Shared Stack</p>
-          <h1 className="text-2xl font-bold tracking-tight">{stack.prompt}</h1>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif", letterSpacing: "0.12em" }}>
+            Shared Stack
+          </p>
+          <h1
+            className="text-2xl font-bold tracking-tight"
+            style={{ fontFamily: "var(--font-syne), sans-serif", letterSpacing: "-0.03em" }}
+          >
+            {stack.prompt}
+          </h1>
         </div>
         <CopyButton text={markdown} label="Copy all" />
       </div>
 
       <div className="space-y-8">
         {/* Summary */}
-        <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900/30">
-          <p className="text-zinc-300 leading-relaxed">{result.summary}</p>
+        <div
+          className="p-5 rounded-xl"
+          style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
+        >
+          <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{result.summary}</p>
         </div>
 
         {/* Recommended tools */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Recommended Stack</h2>
+            <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+              Recommended Stack
+            </h2>
             <CopyButton
               text={result.tools
                 .map((t) => `${t.name} (${t.category}): ${t.reason}`)
@@ -115,24 +127,30 @@ export default async function SharedStackPage({
             {result.tools.map((tool, i) => (
               <div
                 key={i}
-                className="p-4 border border-zinc-800 rounded-xl bg-zinc-900/30"
+                className="p-4 rounded-xl"
+                style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
               >
-                <div className="flex items-center gap-3 mb-1.5">
-                  <span className="font-medium text-zinc-100">{tool.name}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-400">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="font-semibold text-sm" style={{ color: "var(--text-primary)", fontFamily: "var(--font-syne), sans-serif" }}>{tool.name}</span>
+                  <span
+                    className="text-xs px-2.5 py-0.5 rounded-lg"
+                    style={{ background: "var(--accent-cyan-dim)", color: "var(--accent-cyan)", border: "1px solid rgba(34,211,238,0.2)", fontFamily: "var(--font-syne), sans-serif" }}
+                  >
                     {tool.category}
                   </span>
                 </div>
-                <p className="text-sm text-zinc-400 leading-relaxed">{tool.reason}</p>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{tool.reason}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Diagram — rendered client-side via Mermaid */}
+        {/* Diagram */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Architecture Diagram</h2>
+            <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+              Architecture Diagram
+            </h2>
             <CopyButton text={`\`\`\`mermaid\n${result.diagram}\n\`\`\``} label="Copy" />
           </div>
           <MermaidDiagram chart={result.diagram} />
@@ -141,18 +159,23 @@ export default async function SharedStackPage({
         {/* Build Steps */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Build Steps</h2>
+            <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+              Build Steps
+            </h2>
             <CopyButton
               text={result.buildSteps.map((s, i) => `${i + 1}. ${s}`).join("\n")}
             />
           </div>
           <ol className="space-y-3">
             {result.buildSteps.map((step, i) => (
-              <li key={i} className="flex gap-3">
-                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-sm font-medium text-zinc-400">
+              <li key={i} className="flex gap-4">
+                <span
+                  className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+                  style={{ background: "var(--accent-cyan-dim)", color: "var(--accent-cyan)", border: "1px solid rgba(34,211,238,0.2)", fontFamily: "var(--font-jetbrains-mono), monospace" }}
+                >
                   {i + 1}
                 </span>
-                <span className="text-zinc-300 pt-0.5 leading-relaxed">{step}</span>
+                <span className="text-sm pt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>{step}</span>
               </li>
             ))}
           </ol>
@@ -160,12 +183,15 @@ export default async function SharedStackPage({
 
         {/* Tradeoffs */}
         <div>
-          <h2 className="text-lg font-semibold mb-4">Tradeoffs</h2>
-          <ul className="space-y-2">
+          <h2 className="text-base font-bold mb-4" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+            Tradeoffs
+          </h2>
+          <ul className="space-y-2.5">
             {result.tradeoffs.map((tradeoff, i) => (
               <li
                 key={i}
-                className="text-zinc-400 text-sm pl-4 border-l-2 border-zinc-700 leading-relaxed"
+                className="text-sm pl-4 leading-relaxed"
+                style={{ color: "var(--text-secondary)", borderLeft: "2px solid var(--border-default)" }}
               >
                 {tradeoff}
               </li>
@@ -174,14 +200,17 @@ export default async function SharedStackPage({
         </div>
 
         {/* Footer CTA */}
-        <div className="pt-8 border-t border-zinc-800 text-center">
-          <p className="text-zinc-500 text-sm mb-3">
-            Generated by AI Stack Radar — architecture recommendations backed by live
-            sentiment data.
+        <div
+          className="pt-8 text-center"
+          style={{ borderTop: "1px solid var(--border-subtle)" }}
+        >
+          <p className="text-sm mb-4" style={{ color: "var(--text-tertiary)" }}>
+            Generated by AI Stack Radar — architecture recommendations backed by live sentiment data.
           </p>
           <Link
             href="/generate"
-            className="px-6 py-2.5 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors inline-block"
+            className="btn-primary px-6 py-2.5 rounded-xl text-sm inline-block"
+            style={{ fontFamily: "var(--font-syne), sans-serif" }}
           >
             Generate Your Own Stack
           </Link>

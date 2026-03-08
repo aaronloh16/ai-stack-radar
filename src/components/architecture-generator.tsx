@@ -54,10 +54,11 @@ const QUICK_PROMPTS = [
 const GENERATION_STAGES: Array<{
   key: GenerateStatus;
   label: string;
+  description: string;
 }> = [
-  { key: "selecting_tools", label: "Designing architecture" },
-  { key: "generating_diagram", label: "Generating diagram" },
-  { key: "validating_diagram", label: "Validating diagram" },
+  { key: "selecting_tools", label: "Designing architecture", description: "Selecting optimal tools for your use case" },
+  { key: "generating_diagram", label: "Generating diagram", description: "Building the architecture visualization" },
+  { key: "validating_diagram", label: "Validating diagram", description: "Verifying diagram syntax and structure" },
 ];
 
 function getStageState(
@@ -78,7 +79,6 @@ function getStageState(
 
   if (currentIdx > stageIdx) return "completed";
   if (currentIdx === stageIdx) return "active";
-  // tools_complete is between selecting_tools and generating_diagram
   if (stageKey === "selecting_tools" && currentStatus === "tools_complete")
     return "completed";
   if (stageKey === "validating_diagram" && currentStatus === "repairing_diagram")
@@ -94,35 +94,82 @@ function GenerationProgress({
   message: string;
 }) {
   return (
-    <div className="mt-8 p-6 border border-zinc-800 rounded-xl bg-zinc-900/30">
-      <div className="space-y-4">
-        {GENERATION_STAGES.map((stage) => {
+    <div
+      className="mt-8 p-6 rounded-xl"
+      style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }}
+    >
+      <div className="space-y-5">
+        {GENERATION_STAGES.map((stage, i) => {
           const state = getStageState(stage.key, status);
           return (
-            <div key={stage.key} className="flex items-center gap-3">
-              {state === "completed" ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-              ) : state === "active" ? (
-                <Loader2 className="w-5 h-5 text-white animate-spin shrink-0" />
-              ) : (
-                <Circle className="w-5 h-5 text-zinc-700 shrink-0" />
-              )}
-              <span
-                className={
-                  state === "completed"
-                    ? "text-zinc-400"
-                    : state === "active"
-                      ? "text-white font-medium"
-                      : "text-zinc-600"
-                }
-              >
-                {stage.label}
-              </span>
+            <div key={stage.key} className="flex items-start gap-4">
+              {/* Step indicator */}
+              <div className="relative flex flex-col items-center">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all"
+                  style={{
+                    background: state === "completed"
+                      ? "var(--accent-green-dim)"
+                      : state === "active"
+                        ? "var(--accent-cyan-dim)"
+                        : "var(--border-subtle)",
+                    border: `1px solid ${state === "completed"
+                      ? "rgba(52,211,153,0.3)"
+                      : state === "active"
+                        ? "rgba(34,211,238,0.4)"
+                        : "var(--border-default)"}`,
+                  }}
+                >
+                  {state === "completed" ? (
+                    <CheckCircle2 className="w-4 h-4" style={{ color: "var(--accent-green)" }} />
+                  ) : state === "active" ? (
+                    <Loader2 className="w-4 h-4 animate-spin" style={{ color: "var(--accent-cyan)" }} />
+                  ) : (
+                    <Circle className="w-4 h-4" style={{ color: "var(--text-tertiary)" }} />
+                  )}
+                </div>
+                {i < GENERATION_STAGES.length - 1 && (
+                  <div
+                    className="w-px flex-1 mt-1"
+                    style={{
+                      height: "20px",
+                      background: state === "completed" ? "rgba(52,211,153,0.3)" : "var(--border-subtle)",
+                    }}
+                  />
+                )}
+              </div>
+              <div className="pb-4">
+                <p
+                  className="text-sm font-semibold"
+                  style={{
+                    color: state === "completed"
+                      ? "var(--text-secondary)"
+                      : state === "active"
+                        ? "var(--text-primary)"
+                        : "var(--text-tertiary)",
+                    fontFamily: "var(--font-syne), sans-serif",
+                  }}
+                >
+                  {stage.label}
+                </p>
+                {state === "active" && (
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+                    {stage.description}
+                  </p>
+                )}
+              </div>
             </div>
           );
         })}
       </div>
-      <p className="mt-4 text-sm text-zinc-500">{message}</p>
+      {message && (
+        <p
+          className="text-xs mt-2 pt-4"
+          style={{ color: "var(--text-tertiary)", borderTop: "1px solid var(--border-subtle)" }}
+        >
+          {message}
+        </p>
+      )}
     </div>
   );
 }
@@ -199,7 +246,10 @@ Generated by [AI Stack Radar](https://ai-stack-radar.vercel.app) — architectur
       {/* Quick-start prompts */}
       {!result && !loading && (
         <div className="mb-5">
-          <p className="text-xs text-zinc-500 mb-2.5 uppercase tracking-wider font-medium">
+          <p
+            className="text-[10px] font-semibold uppercase tracking-widest mb-3"
+            style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif", letterSpacing: "0.12em" }}
+          >
             Quick start
           </p>
           <div className="flex flex-wrap gap-2">
@@ -207,9 +257,23 @@ Generated by [AI Stack Radar](https://ai-stack-radar.vercel.app) — architectur
               <button
                 key={qp.label}
                 onClick={() => setPrompt(qp.prompt)}
-                className="group flex items-center gap-2 px-3 py-2 rounded-lg border border-zinc-800 bg-zinc-900/50 text-sm text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 hover:bg-zinc-900 transition-colors"
+                className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-all"
+                style={{
+                  border: "1px solid var(--border-subtle)",
+                  background: "var(--bg-surface)",
+                  color: "var(--text-secondary)",
+                  fontFamily: "var(--font-syne), sans-serif",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)";
+                  (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)";
+                  (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+                }}
               >
-                <qp.icon className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
+                <qp.icon className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--accent-cyan)" }} />
                 {qp.label}
               </button>
             ))}
@@ -218,21 +282,25 @@ Generated by [AI Stack Radar](https://ai-stack-radar.vercel.app) — architectur
       )}
 
       {/* Input */}
-      <div className="relative">
+      <div>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Describe what you want to build... (e.g., 'A RAG chatbot for internal company docs with Slack integration')"
-          className="w-full h-32 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 resize-none transition-colors"
+          className="input-base w-full h-36 rounded-xl px-5 py-4 text-sm resize-none"
+          style={{ fontFamily: "var(--font-syne), sans-serif" }}
           maxLength={2000}
           disabled={loading}
         />
         <div className="flex justify-between items-center mt-3">
-          <span className="text-xs text-zinc-600">{prompt.length}/2000</span>
+          <span className="text-xs" style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-jetbrains-mono), monospace" }}>
+            {prompt.length}/2000
+          </span>
           <button
             onClick={handleGenerate}
             disabled={loading || !prompt.trim()}
-            className="px-6 py-2.5 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="btn-primary px-6 py-2.5 rounded-xl text-sm inline-flex items-center gap-2"
+            style={{ fontFamily: "var(--font-syne), sans-serif", letterSpacing: "0.01em" }}
           >
             {loading ? (
               <>
@@ -250,7 +318,10 @@ Generated by [AI Stack Radar](https://ai-stack-radar.vercel.app) — architectur
       </div>
 
       {state.status === "error" && (
-        <div className="mt-6 p-4 bg-red-950/50 border border-red-900 rounded-xl text-red-300 text-sm">
+        <div
+          className="mt-6 p-4 rounded-xl text-sm"
+          style={{ background: "rgba(248,113,113,0.05)", border: "1px solid rgba(248,113,113,0.2)", color: "var(--accent-red)" }}
+        >
           {state.error}
         </div>
       )}
@@ -262,15 +333,16 @@ Generated by [AI Stack Radar](https://ai-stack-radar.vercel.app) — architectur
 
       {/* Results */}
       {result && (
-        <div className="mt-8 space-y-8">
+        <div className="mt-10 space-y-8 animate-fade-in">
           {/* Actions bar */}
           <div className="flex gap-3">
             <button
               onClick={handleCopyMarkdown}
-              className="px-4 py-2 bg-zinc-800 rounded-lg text-sm flex items-center gap-2 hover:bg-zinc-700 transition-colors"
+              className="btn-ghost px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2"
+              style={{ fontFamily: "var(--font-syne), sans-serif" }}
             >
               {copied ? (
-                <Check className="w-4 h-4 text-emerald-400" />
+                <Check className="w-4 h-4" style={{ color: "var(--accent-green)" }} />
               ) : (
                 <Copy className="w-4 h-4" />
               )}
@@ -278,7 +350,8 @@ Generated by [AI Stack Radar](https://ai-stack-radar.vercel.app) — architectur
             </button>
             <button
               onClick={handleShare}
-              className="px-4 py-2 bg-zinc-800 rounded-lg text-sm flex items-center gap-2 hover:bg-zinc-700 transition-colors"
+              className="btn-ghost px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2"
+              style={{ fontFamily: "var(--font-syne), sans-serif" }}
             >
               <Share2 className="w-4 h-4" />
               {shareUrl ? "Link Copied!" : "Share"}
@@ -286,29 +359,52 @@ Generated by [AI Stack Radar](https://ai-stack-radar.vercel.app) — architectur
           </div>
 
           {/* Summary */}
-          <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900/30">
-            <p className="text-zinc-300 leading-relaxed">{result.summary}</p>
+          <div
+            className="p-5 rounded-xl"
+            style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
+          >
+            <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+              {result.summary}
+            </p>
           </div>
 
           {/* Recommended tools */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Package className="w-4 h-4 text-emerald-400" />
-              <h2 className="text-lg font-semibold">Recommended Stack</h2>
+            <div className="flex items-center gap-2.5 mb-5">
+              <Package className="w-4 h-4" style={{ color: "var(--accent-cyan)" }} />
+              <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-syne), sans-serif", color: "var(--text-primary)" }}>
+                Recommended Stack
+              </h2>
             </div>
             <div className="grid gap-3">
               {result.tools.map((tool, i) => (
                 <div
                   key={i}
-                  className="p-4 border border-zinc-800 rounded-xl bg-zinc-900/30 hover:border-zinc-700 transition-colors"
+                  className="p-4 rounded-xl transition-all"
+                  style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
+                  onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.borderColor = "var(--border-default)"}
+                  onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)"}
                 >
-                  <div className="flex items-center gap-3 mb-1.5">
-                    <span className="font-medium text-zinc-100">{tool.name}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-400">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-semibold text-sm" style={{ color: "var(--text-primary)", fontFamily: "var(--font-syne), sans-serif" }}>
+                      {tool.name}
+                    </span>
+                    <span
+                      className="text-xs px-2.5 py-0.5 rounded-lg"
+                      style={{
+                        background: "var(--accent-cyan-dim)",
+                        color: "var(--accent-cyan)",
+                        border: "1px solid rgba(34,211,238,0.2)",
+                        fontFamily: "var(--font-syne), sans-serif",
+                        letterSpacing: "0.01em",
+                      }}
+                    >
                       {tool.category}
                     </span>
                   </div>
-                  <p className="text-sm text-zinc-400 leading-relaxed">{tool.reason}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                    {tool.reason}
+                  </p>
                 </div>
               ))}
             </div>
@@ -316,26 +412,40 @@ Generated by [AI Stack Radar](https://ai-stack-radar.vercel.app) — architectur
 
           {/* Diagram */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <GitFork className="w-4 h-4 text-violet-400" />
-              <h2 className="text-lg font-semibold">Architecture Diagram</h2>
+            <div className="flex items-center gap-2.5 mb-5">
+              <GitFork className="w-4 h-4" style={{ color: "var(--accent-violet)" }} />
+              <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-syne), sans-serif", color: "var(--text-primary)" }}>
+                Architecture Diagram
+              </h2>
             </div>
             <MermaidDiagram chart={result.diagram} />
           </div>
 
           {/* Build Steps */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <ListOrdered className="w-4 h-4 text-amber-400" />
-              <h2 className="text-lg font-semibold">Build Steps</h2>
+            <div className="flex items-center gap-2.5 mb-5">
+              <ListOrdered className="w-4 h-4" style={{ color: "var(--accent-amber)" }} />
+              <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-syne), sans-serif", color: "var(--text-primary)" }}>
+                Build Steps
+              </h2>
             </div>
             <ol className="space-y-3">
               {result.buildSteps.map((step, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-sm font-medium text-zinc-400">
+                <li key={i} className="flex gap-4">
+                  <span
+                    className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+                    style={{
+                      background: "var(--accent-cyan-dim)",
+                      color: "var(--accent-cyan)",
+                      border: "1px solid rgba(34,211,238,0.2)",
+                      fontFamily: "var(--font-jetbrains-mono), monospace",
+                    }}
+                  >
                     {i + 1}
                   </span>
-                  <span className="text-zinc-300 pt-0.5 leading-relaxed">{step}</span>
+                  <span className="text-sm pt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                    {step}
+                  </span>
                 </li>
               ))}
             </ol>
@@ -343,15 +453,21 @@ Generated by [AI Stack Radar](https://ai-stack-radar.vercel.app) — architectur
 
           {/* Tradeoffs */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Scale className="w-4 h-4 text-orange-400" />
-              <h2 className="text-lg font-semibold">Tradeoffs</h2>
+            <div className="flex items-center gap-2.5 mb-5">
+              <Scale className="w-4 h-4" style={{ color: "var(--accent-amber)" }} />
+              <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-syne), sans-serif", color: "var(--text-primary)" }}>
+                Tradeoffs
+              </h2>
             </div>
-            <ul className="space-y-2">
+            <ul className="space-y-2.5">
               {result.tradeoffs.map((tradeoff, i) => (
                 <li
                   key={i}
-                  className="text-zinc-400 text-sm pl-4 border-l-2 border-zinc-700 leading-relaxed"
+                  className="text-sm pl-4 leading-relaxed"
+                  style={{
+                    color: "var(--text-secondary)",
+                    borderLeft: "2px solid var(--border-default)",
+                  }}
                 >
                   {tradeoff}
                 </li>

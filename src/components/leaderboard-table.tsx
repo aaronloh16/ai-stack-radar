@@ -10,6 +10,7 @@ import {
   ChevronUp,
   ChevronDown,
   Search,
+  Zap,
 } from "lucide-react";
 
 interface Tool {
@@ -87,37 +88,46 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
   );
 
   function sortIcon(column: SortKey) {
-    if (sortKey !== column) return <ChevronDown className="w-3 h-3 text-zinc-600" />;
+    if (sortKey !== column) return <ChevronDown className="w-3 h-3" style={{ color: "var(--text-tertiary)" }} />;
     return sortDir === "desc" ? (
-      <ChevronDown className="w-3 h-3 text-zinc-300" />
+      <ChevronDown className="w-3 h-3" style={{ color: "var(--accent-cyan)" }} />
     ) : (
-      <ChevronUp className="w-3 h-3 text-zinc-300" />
+      <ChevronUp className="w-3 h-3" style={{ color: "var(--accent-cyan)" }} />
     );
   }
+
+  const maxScore = filteredTools[0]?.overallScore || 1;
 
   return (
     <div>
       {/* Search + Category filters */}
       <div className="mb-6 space-y-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
+            style={{ color: "var(--text-tertiary)" }}
+          />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tools..."
-            className="w-full pl-10 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
+            className="input-base w-full pl-11 pr-4 py-3 rounded-xl text-sm"
+            style={{ fontFamily: "var(--font-syne), sans-serif" }}
           />
         </div>
 
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              !selectedCategory
-                ? "bg-white text-zinc-900"
-                : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
-            }`}
+            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{
+              background: !selectedCategory ? "var(--accent-cyan)" : "var(--bg-surface)",
+              color: !selectedCategory ? "#06060e" : "var(--text-secondary)",
+              border: `1px solid ${!selectedCategory ? "var(--accent-cyan)" : "var(--border-subtle)"}`,
+              fontFamily: "var(--font-syne), sans-serif",
+              letterSpacing: "0.02em",
+            }}
           >
             All
           </button>
@@ -125,11 +135,14 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                selectedCategory === cat
-                  ? "bg-white text-zinc-900"
-                  : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
-              }`}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={{
+                background: selectedCategory === cat ? "var(--accent-cyan)" : "var(--bg-surface)",
+                color: selectedCategory === cat ? "#06060e" : "var(--text-secondary)",
+                border: `1px solid ${selectedCategory === cat ? "var(--accent-cyan)" : "var(--border-subtle)"}`,
+                fontFamily: "var(--font-syne), sans-serif",
+                letterSpacing: "0.02em",
+              }}
             >
               {CATEGORIES[cat] || cat}
             </button>
@@ -138,21 +151,31 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
       </div>
 
       {/* Table */}
-      <div className="border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-subtle)" }}>
         <table className="w-full">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/50">
-              <th className="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider w-12">
+            <tr style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }}>
+              <th
+                className="text-left px-5 py-3.5 text-[10px] font-semibold uppercase tracking-widest w-14"
+                style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}
+              >
                 #
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <th
+                className="text-left px-5 py-3.5 text-[10px] font-semibold uppercase tracking-widest"
+                style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}
+              >
                 Tool
               </th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider hidden md:table-cell">
+              <th
+                className="text-left px-5 py-3.5 text-[10px] font-semibold uppercase tracking-widest hidden md:table-cell"
+                style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}
+              >
                 Category
               </th>
               <th
-                className="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider cursor-pointer select-none hover:text-zinc-300 transition-colors"
+                className="text-right px-5 py-3.5 text-[10px] font-semibold uppercase tracking-widest cursor-pointer select-none transition-colors"
+                style={{ color: sortKey === "stars" ? "var(--accent-cyan)" : "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}
                 onClick={() => handleSort("stars")}
               >
                 <span className="flex items-center justify-end gap-1">
@@ -160,7 +183,8 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
                 </span>
               </th>
               <th
-                className="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider hidden sm:table-cell cursor-pointer select-none hover:text-zinc-300 transition-colors"
+                className="text-right px-5 py-3.5 text-[10px] font-semibold uppercase tracking-widest hidden sm:table-cell cursor-pointer select-none transition-colors"
+                style={{ color: sortKey === "starVelocity" ? "var(--accent-cyan)" : "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}
                 onClick={() => handleSort("starVelocity")}
               >
                 <span className="flex items-center justify-end gap-1">
@@ -168,7 +192,8 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
                 </span>
               </th>
               <th
-                className="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider hidden lg:table-cell cursor-pointer select-none hover:text-zinc-300 transition-colors"
+                className="text-right px-5 py-3.5 text-[10px] font-semibold uppercase tracking-widest hidden lg:table-cell cursor-pointer select-none transition-colors"
+                style={{ color: sortKey === "hnPoints7d" ? "var(--accent-cyan)" : "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}
                 onClick={() => handleSort("hnPoints7d")}
               >
                 <span className="flex items-center justify-end gap-1">
@@ -176,7 +201,8 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
                 </span>
               </th>
               <th
-                className="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider hidden lg:table-cell cursor-pointer select-none hover:text-zinc-300 transition-colors"
+                className="text-right px-5 py-3.5 text-[10px] font-semibold uppercase tracking-widest hidden lg:table-cell cursor-pointer select-none transition-colors"
+                style={{ color: sortKey === "downloads7d" ? "var(--accent-cyan)" : "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}
                 onClick={() => handleSort("downloads7d")}
               >
                 <span className="flex items-center justify-end gap-1">
@@ -184,7 +210,8 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
                 </span>
               </th>
               <th
-                className="text-right px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider cursor-pointer select-none hover:text-zinc-300 transition-colors"
+                className="text-right px-5 py-3.5 text-[10px] font-semibold uppercase tracking-widest cursor-pointer select-none transition-colors"
+                style={{ color: sortKey === "overallScore" ? "var(--accent-cyan)" : "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}
                 onClick={() => handleSort("overallScore")}
               >
                 <span className="flex items-center justify-end gap-1">
@@ -197,96 +224,114 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
             {filteredTools.map((tool, index) => (
               <tr
                 key={tool.id}
-                className="border-b border-zinc-800/50 hover:bg-zinc-900/30 transition-colors"
+                className={`transition-all ${index === 0 ? "row-rank-1" : index === 1 ? "row-rank-2" : index === 2 ? "row-rank-3" : ""}`}
+                style={{ borderBottom: index < filteredTools.length - 1 ? "1px solid var(--border-subtle)" : "none" }}
+                onMouseEnter={(e) => {
+                  if (index >= 3) (e.currentTarget as HTMLElement).style.background = "var(--bg-surface)";
+                }}
+                onMouseLeave={(e) => {
+                  if (index >= 3) (e.currentTarget as HTMLElement).style.background = "";
+                }}
               >
-                <td className="px-4 py-3 text-sm">
-                  {index < 3 ? (
-                    <span
-                      className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                        index === 0
-                          ? "bg-amber-500/20 text-amber-400"
-                          : index === 1
-                            ? "bg-zinc-400/20 text-zinc-300"
-                            : "bg-orange-600/20 text-orange-400"
-                      }`}
-                    >
-                      {index + 1}
-                    </span>
+                {/* Rank */}
+                <td className="px-5 py-4">
+                  {index === 0 ? (
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-bold" style={{ background: "var(--accent-amber-dim)", color: "var(--accent-amber)", border: "1px solid rgba(251,191,36,0.2)" }}>1</span>
+                  ) : index === 1 ? (
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-bold" style={{ background: "rgba(148,163,184,0.08)", color: "#94a3b8", border: "1px solid rgba(148,163,184,0.15)" }}>2</span>
+                  ) : index === 2 ? (
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-bold" style={{ background: "rgba(251,146,60,0.08)", color: "#fb923c", border: "1px solid rgba(251,146,60,0.15)" }}>3</span>
                   ) : (
-                    <span className="text-zinc-500 pl-1.5">{index + 1}</span>
+                    <span className="text-xs pl-1" style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-jetbrains-mono), monospace" }}>{index + 1}</span>
                   )}
                 </td>
-                <td className="px-4 py-3">
+
+                {/* Tool name */}
+                <td className="px-5 py-4">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={`https://github.com/${tool.repo}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-zinc-100 hover:text-white flex items-center gap-1"
-                      >
-                        {tool.name}
-                        <ArrowUpRight className="w-3 h-3 text-zinc-500" />
-                      </a>
-                    </div>
-                    <p className="text-xs text-zinc-500 mt-0.5 max-w-md truncate">
-                      {tool.description}
-                    </p>
+                    <a
+                      href={`https://github.com/${tool.repo}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium inline-flex items-center gap-1.5 group/link mb-0.5"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {tool.name}
+                      <ArrowUpRight className="w-3 h-3 opacity-0 group-hover/link:opacity-100 transition-opacity" style={{ color: "var(--text-tertiary)" }} />
+                    </a>
+                    {tool.description && (
+                      <p className="text-xs max-w-md truncate" style={{ color: "var(--text-tertiary)" }}>
+                        {tool.description}
+                      </p>
+                    )}
                   </div>
                 </td>
-                <td className="px-4 py-3 hidden md:table-cell">
-                  <span className="text-xs px-2 py-1 rounded-md bg-zinc-800 text-zinc-400">
+
+                {/* Category */}
+                <td className="px-5 py-4 hidden md:table-cell">
+                  <span
+                    className="text-xs px-2.5 py-1 rounded-lg font-medium"
+                    style={{
+                      background: "var(--bg-surface)",
+                      color: "var(--text-secondary)",
+                      border: "1px solid var(--border-subtle)",
+                      fontFamily: "var(--font-syne), sans-serif",
+                      letterSpacing: "0.01em",
+                    }}
+                  >
                     {CATEGORIES[tool.category] || tool.category}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right text-sm text-zinc-300 tabular-nums">
+
+                {/* Stars */}
+                <td className="px-5 py-4 text-right text-sm tabular-nums" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-jetbrains-mono), monospace" }}>
                   {tool.stars.toLocaleString()}
                 </td>
-                <td className="px-4 py-3 text-right text-sm hidden sm:table-cell tabular-nums">
-                  <span
-                    className={
-                      tool.starVelocity > 0
-                        ? "text-emerald-400"
-                        : tool.starVelocity < 0
-                          ? "text-red-400"
-                          : "text-zinc-500"
-                    }
-                  >
-                    {tool.starVelocity >= 0 ? "+" : ""}
-                    {tool.starVelocity.toFixed(1)}/d
+
+                {/* Star velocity */}
+                <td className="px-5 py-4 text-right text-sm hidden sm:table-cell tabular-nums" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
+                  <span style={{ color: tool.starVelocity > 0 ? "var(--accent-green)" : tool.starVelocity < 0 ? "var(--accent-red)" : "var(--text-tertiary)" }}>
+                    <span className="flex items-center justify-end gap-1">
+                      {tool.starVelocity > 0 && <Zap className="w-3 h-3" />}
+                      {tool.starVelocity >= 0 ? "+" : ""}
+                      {tool.starVelocity.toFixed(1)}/d
+                    </span>
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right text-sm text-zinc-400 hidden lg:table-cell tabular-nums">
+
+                {/* HN */}
+                <td className="px-5 py-4 text-right text-sm hidden lg:table-cell tabular-nums" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-jetbrains-mono), monospace" }}>
                   {tool.hnMentions7d > 0 ? (
                     <span>
-                      {tool.hnMentions7d} ({tool.hnPoints7d}pts)
+                      {tool.hnMentions7d}{" "}
+                      <span style={{ color: "var(--text-tertiary)" }}>({tool.hnPoints7d}pts)</span>
                     </span>
                   ) : (
-                    <span className="text-zinc-600">—</span>
+                    <span style={{ color: "var(--text-tertiary)" }}>—</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-right text-sm text-zinc-400 hidden lg:table-cell tabular-nums">
+
+                {/* Downloads */}
+                <td className="px-5 py-4 text-right text-sm hidden lg:table-cell tabular-nums" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-jetbrains-mono), monospace" }}>
                   {(tool.npmDownloads7d + tool.pypiDownloads7d) > 0 ? (
-                    <span>
-                      {(tool.npmDownloads7d + tool.pypiDownloads7d).toLocaleString()}
-                    </span>
+                    (tool.npmDownloads7d + tool.pypiDownloads7d).toLocaleString()
                   ) : (
-                    <span className="text-zinc-600">—</span>
+                    <span style={{ color: "var(--text-tertiary)" }}>—</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="relative inline-flex items-center gap-2">
-                    <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden hidden sm:block">
-                      <div
-                        className="h-full bg-emerald-500/60 rounded-full"
-                        style={{
-                          width: `${Math.min(100, (tool.overallScore / (filteredTools[0]?.overallScore || 1)) * 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <span className="text-sm font-semibold text-white tabular-nums">
+
+                {/* Score */}
+                <td className="px-5 py-4 text-right">
+                  <div className="inline-flex flex-col items-end gap-1.5">
+                    <span className="text-sm font-bold tabular-nums" style={{ color: "var(--accent-cyan)", fontFamily: "var(--font-jetbrains-mono), monospace" }}>
                       {tool.overallScore.toFixed(1)}
                     </span>
+                    <div className="w-16 h-[3px] rounded-full hidden sm:block" style={{ background: "var(--border-subtle)" }}>
+                      <div
+                        className="h-full rounded-full score-bar"
+                        style={{ width: `${Math.min(100, (tool.overallScore / maxScore) * 100)}%` }}
+                      />
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -296,7 +341,7 @@ export function LeaderboardTable({ initialTools }: { initialTools: Tool[] }) {
       </div>
 
       {filteredTools.length === 0 && (
-        <div className="text-center py-12 text-zinc-500">
+        <div className="text-center py-16 text-sm" style={{ color: "var(--text-tertiary)" }}>
           {search.trim()
             ? `No tools matching "${search}".`
             : "No tools found for this category."}

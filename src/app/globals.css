@@ -1,1 +1,282 @@
 @import "tailwindcss";
+
+/* ─── Design Tokens ──────────────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-base: #06060e;
+  --bg-surface: #0c0c1a;
+  --bg-elevated: #11112000;
+
+  /* Borders */
+  --border-subtle: #1a1a32;
+  --border-default: #252545;
+  --border-strong: #363660;
+
+  /* Text */
+  --text-primary: #e8e8f4;
+  --text-secondary: #7878a0;
+  --text-tertiary: #3a3a5c;
+
+  /* Accents */
+  --accent-cyan: #22d3ee;
+  --accent-cyan-dim: #22d3ee20;
+  --accent-green: #34d399;
+  --accent-green-dim: #34d39920;
+  --accent-amber: #fbbf24;
+  --accent-amber-dim: #fbbf2420;
+  --accent-violet: #a78bfa;
+  --accent-violet-dim: #a78bfa20;
+  --accent-red: #f87171;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Typography ─────────────────────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-syne), sans-serif;
+}
+
+.font-mono-data {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--accent-green-dim);
+  }
+  50% {
+    box-shadow: 0 0 12px 4px var(--accent-green-dim);
+  }
+}
+
+@keyframes radar-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(600px); opacity: 0; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ─── Utility Classes ────────────────────────────────────────────────── */
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease both;
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* ─── Dot Grid Background ────────────────────────────────────────────── */
+.bg-dot-grid {
+  background-image: radial-gradient(
+    circle,
+    #1e1e35 1px,
+    transparent 1px
+  );
+  background-size: 28px 28px;
+}
+
+/* ─── Glow Effects ───────────────────────────────────────────────────── */
+.glow-cyan {
+  box-shadow: 0 0 20px var(--accent-cyan-dim), 0 0 40px var(--accent-cyan-dim);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px var(--accent-green-dim), 0 0 40px var(--accent-green-dim);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 20px var(--accent-cyan), 0 0 40px var(--accent-cyan-dim);
+}
+
+.text-glow-green {
+  text-shadow: 0 0 16px var(--accent-green), 0 0 32px var(--accent-green-dim);
+}
+
+/* ─── Card Styles ────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--border-default);
+}
+
+/* ─── Input Styles ───────────────────────────────────────────────────── */
+.input-base {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-base:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px var(--accent-cyan-dim);
+}
+
+.input-base::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* ─── Button Styles ──────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--accent-cyan);
+  color: #06060e;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #38e3ff;
+  box-shadow: 0 0 20px var(--accent-cyan-dim), 0 4px 12px rgba(34, 211, 238, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+
+/* ─── Table Row Glow (top entries) ───────────────────────────────────── */
+.row-rank-1 {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.04) 0%, transparent 60%);
+}
+
+.row-rank-2 {
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.03) 0%, transparent 60%);
+}
+
+.row-rank-3 {
+  background: linear-gradient(90deg, rgba(251, 146, 60, 0.03) 0%, transparent 60%);
+}
+
+/* ─── Live Badge ─────────────────────────────────────────────────────── */
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* ─── Score Bar ──────────────────────────────────────────────────────── */
+.score-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+}
+
+/* ─── Noise Texture Overlay ──────────────────────────────────────────── */
+/* ─── Hover Utilities (CSS-only, safe in Server Components) ─────────── */
+.hover-text-secondary {
+  color: var(--text-tertiary);
+  transition: color 0.15s ease;
+}
+.hover-text-secondary:hover {
+  color: var(--text-secondary);
+}
+
+.home-table-row:hover {
+  background: var(--bg-surface);
+}
+.row-rank-1.home-table-row:hover,
+.row-rank-2.home-table-row:hover,
+.row-rank-3.home-table-row:hover {
+  background: unset;
+}
+
+/* ─── Noise Texture Overlay ──────────────────────────────────────────── */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}

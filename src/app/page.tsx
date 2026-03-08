@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Trophy, Sparkles, TrendingUp, ArrowUpRight, Star, Activity } from "lucide-react";
+import { Trophy, Sparkles, TrendingUp, ArrowUpRight, Star, Radio, Zap } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -56,134 +56,196 @@ export default async function Home() {
   const topMovers = await getTopMovers();
 
   return (
-    <div className="relative">
-      {/* Subtle radial gradient behind hero */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-emerald-500/[0.03] rounded-full blur-3xl" />
-      </div>
+    <div className="relative overflow-hidden">
+      {/* Dot grid background */}
+      <div
+        className="absolute inset-0 bg-dot-grid pointer-events-none"
+        style={{ opacity: 0.4 }}
+      />
 
-      <div className="max-w-5xl mx-auto px-6 pt-20 pb-16 relative">
+      {/* Radial fade-out over dot grid */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse 80% 50% at 50% 0%, transparent 0%, var(--bg-base) 70%)",
+        }}
+      />
+
+      {/* Hero glow */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: "-10%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "700px",
+          height: "500px",
+          background: "radial-gradient(ellipse, rgba(34,211,238,0.06) 0%, transparent 70%)",
+          filter: "blur(40px)",
+        }}
+      />
+
+      <div className="max-w-5xl mx-auto px-6 pt-24 pb-20 relative">
         {/* Hero */}
-        <div className="text-center space-y-5 mb-20">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/80 text-xs text-zinc-400 mb-2">
-            <Activity className="w-3 h-3 text-emerald-400" />
-            Updated daily from GitHub &amp; Hacker News
+        <div className="text-center space-y-6 mb-24 animate-fade-in-up">
+          {/* Live badge */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)", color: "var(--text-secondary)" }}>
+            <span className="live-dot" />
+            <span>Updated daily from GitHub &amp; Hacker News</span>
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1]">
+
+          {/* Headline */}
+          <h1
+            className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]"
+            style={{ fontFamily: "var(--font-syne), sans-serif", letterSpacing: "-0.03em" }}
+          >
             What developers are
             <br />
-            <span className="text-emerald-400">actually using</span>
+            <span style={{ color: "var(--accent-cyan)" }} className="text-glow-cyan">
+              actually using
+            </span>
           </h1>
-          <p className="text-lg text-zinc-400 max-w-xl mx-auto leading-relaxed">
-            AI dev tool rankings backed by live sentiment data. See&nbsp;what&rsquo;s
+
+          <p className="text-lg max-w-lg mx-auto leading-relaxed delay-100 animate-fade-in-up" style={{ color: "var(--text-secondary)" }}>
+            AI dev tool rankings backed by live sentiment data. See what&rsquo;s
             gaining momentum, then generate an architecture that uses it.
           </p>
-          <div className="flex gap-3 justify-center pt-2">
+
+          <div className="flex gap-3 justify-center pt-2 delay-200 animate-fade-in-up">
             <Link
               href="/leaderboard"
-              className="group px-6 py-3 bg-emerald-500 text-zinc-950 rounded-lg font-semibold text-sm hover:bg-emerald-400 transition-colors inline-flex items-center gap-2"
+              className="group btn-primary px-6 py-3 rounded-xl text-sm inline-flex items-center gap-2"
             >
               View Leaderboard
               <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
             <Link
               href="/generate"
-              className="px-6 py-3 border border-zinc-700 rounded-lg font-semibold text-sm hover:border-zinc-500 hover:bg-zinc-900 transition-colors"
+              className="btn-ghost px-6 py-3 rounded-xl text-sm inline-flex items-center gap-2"
             >
               Generate a Stack
+              <Sparkles className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
 
         {/* Feature cards */}
-        <div className="grid md:grid-cols-2 gap-5 mb-16">
+        <div className="grid md:grid-cols-2 gap-4 mb-20 delay-300 animate-fade-in-up">
           {/* Leaderboard card */}
-          <div className="group relative p-6 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 transition-colors">
-            <div className="flex items-start gap-4">
-              <div className="shrink-0 w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold mb-1.5">Momentum Leaderboard</h2>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  Ranks 60+ AI dev tools by GitHub star velocity and Hacker News activity.
-                  Open-source scoring algorithm — no black boxes.
-                </p>
-                <div className="flex items-center gap-3 mt-3 text-xs text-zinc-500">
-                  <span className="flex items-center gap-1">
-                    <Star className="w-3 h-3" /> Star velocity
-                  </span>
-                  <span className="text-zinc-700">·</span>
-                  <span>HN mentions</span>
-                  <span className="text-zinc-700">·</span>
-                  <span>Daily updates</span>
+          <Link href="/leaderboard" className="group block">
+            <div className="card p-6 h-full hover:scale-[1.01] transition-transform cursor-pointer">
+              <div className="flex items-start gap-4">
+                <div
+                  className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: "var(--accent-amber-dim)", border: "1px solid rgba(251,191,36,0.2)" }}
+                >
+                  <Trophy className="w-5 h-5" style={{ color: "var(--accent-amber)" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <h2 className="text-base font-semibold" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+                      Momentum Leaderboard
+                    </h2>
+                    <ArrowUpRight
+                      className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      style={{ color: "var(--text-secondary)" }}
+                    />
+                  </div>
+                  <p className="text-sm leading-relaxed mb-3" style={{ color: "var(--text-secondary)" }}>
+                    Ranks 60+ AI dev tools by GitHub star velocity and Hacker News activity.
+                    Open-source scoring — no black boxes.
+                  </p>
+                  <div className="flex items-center gap-3 text-xs" style={{ color: "var(--text-tertiary)" }}>
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3 h-3" /> Star velocity
+                    </span>
+                    <span>·</span>
+                    <span>HN mentions</span>
+                    <span>·</span>
+                    <span>Daily updates</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
 
           {/* Generator card */}
-          <div className="group relative p-6 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 transition-colors">
-            <div className="flex items-start gap-4">
-              <div className="shrink-0 w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-violet-400" />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold mb-1.5">Architecture Generator</h2>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  Describe what you want to build. Get a recommended stack, Mermaid
-                  diagram, and step-by-step build plan — powered by live data.
-                </p>
-                <div className="flex items-center gap-3 mt-3 text-xs text-zinc-500">
-                  <span className="flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Claude-powered
-                  </span>
-                  <span className="text-zinc-700">·</span>
-                  <span>Diagrams</span>
-                  <span className="text-zinc-700">·</span>
-                  <span>Shareable</span>
+          <Link href="/generate" className="group block">
+            <div className="card p-6 h-full hover:scale-[1.01] transition-transform cursor-pointer">
+              <div className="flex items-start gap-4">
+                <div
+                  className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: "var(--accent-violet-dim)", border: "1px solid rgba(167,139,250,0.2)" }}
+                >
+                  <Sparkles className="w-5 h-5" style={{ color: "var(--accent-violet)" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <h2 className="text-base font-semibold" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+                      Architecture Generator
+                    </h2>
+                    <ArrowUpRight
+                      className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      style={{ color: "var(--text-secondary)" }}
+                    />
+                  </div>
+                  <p className="text-sm leading-relaxed mb-3" style={{ color: "var(--text-secondary)" }}>
+                    Describe what you want to build. Get a recommended stack, Mermaid
+                    diagram, and step-by-step build plan — powered by live data.
+                  </p>
+                  <div className="flex items-center gap-3 text-xs" style={{ color: "var(--text-tertiary)" }}>
+                    <span className="flex items-center gap-1">
+                      <Radio className="w-3 h-3" /> Claude-powered
+                    </span>
+                    <span>·</span>
+                    <span>Diagrams</span>
+                    <span>·</span>
+                    <span>Shareable</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Top Movers preview */}
         {topMovers.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
-                <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
+          <div className="delay-400 animate-fade-in-up">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2.5">
+                <div className="live-dot" />
+                <span
+                  className="text-xs font-semibold uppercase tracking-widest"
+                  style={{ color: "var(--text-secondary)", fontFamily: "var(--font-syne), sans-serif", letterSpacing: "0.12em" }}
+                >
                   Top Movers
-                </h2>
+                </span>
               </div>
               <Link
                 href="/leaderboard"
-                className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1"
+                className="hover-text-secondary text-xs flex items-center gap-1"
               >
-                View all
-                <ArrowUpRight className="w-3 h-3" />
+                View all <ArrowUpRight className="w-3 h-3" />
               </Link>
             </div>
 
-            <div className="border border-zinc-800 rounded-xl overflow-hidden">
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-subtle)" }}>
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                    <th className="text-left px-4 py-2.5 text-[11px] font-medium text-zinc-500 uppercase tracking-wider w-10">
+                  <tr style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }}>
+                    <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-widest w-12" style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}>
                       #
                     </th>
-                    <th className="text-left px-4 py-2.5 text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                    <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}>
                       Tool
                     </th>
-                    <th className="text-right px-4 py-2.5 text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                    <th className="text-right px-5 py-3 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}>
                       Stars
                     </th>
-                    <th className="text-right px-4 py-2.5 text-[11px] font-medium text-zinc-500 uppercase tracking-wider hidden sm:table-cell">
+                    <th className="text-right px-5 py-3 text-[10px] font-semibold uppercase tracking-widest hidden sm:table-cell" style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}>
                       Velocity
                     </th>
-                    <th className="text-right px-4 py-2.5 text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                    <th className="text-right px-5 py-3 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-syne), sans-serif" }}>
                       Score
                     </th>
                   </tr>
@@ -192,53 +254,48 @@ export default async function Home() {
                   {topMovers.map((tool, i) => (
                     <tr
                       key={tool.repo}
-                      className="border-b border-zinc-800/50 last:border-0 hover:bg-zinc-900/30 transition-colors"
+                      className={`home-table-row transition-colors ${i === 0 ? "row-rank-1" : i === 1 ? "row-rank-2" : i === 2 ? "row-rank-3" : ""}`}
+                      style={{ borderBottom: i < topMovers.length - 1 ? "1px solid var(--border-subtle)" : "none" }}
                     >
-                      <td className="px-4 py-2.5 text-sm">
-                        <span
-                          className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${
-                            i === 0
-                              ? "bg-amber-500/20 text-amber-400"
-                              : i === 1
-                                ? "bg-zinc-400/20 text-zinc-300"
-                                : i === 2
-                                  ? "bg-orange-600/20 text-orange-400"
-                                  : "text-zinc-600"
-                          }`}
-                        >
-                          {i + 1}
-                        </span>
+                      <td className="px-5 py-3.5">
+                        {i === 0 ? (
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-bold" style={{ background: "var(--accent-amber-dim)", color: "var(--accent-amber)", border: "1px solid rgba(251,191,36,0.2)" }}>1</span>
+                        ) : i === 1 ? (
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-bold" style={{ background: "rgba(148,163,184,0.08)", color: "#94a3b8", border: "1px solid rgba(148,163,184,0.15)" }}>2</span>
+                        ) : i === 2 ? (
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-md text-[10px] font-bold" style={{ background: "rgba(251,146,60,0.08)", color: "#fb923c", border: "1px solid rgba(251,146,60,0.15)" }}>3</span>
+                        ) : (
+                          <span className="text-xs font-mono pl-1" style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-jetbrains-mono), monospace" }}>{i + 1}</span>
+                        )}
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-5 py-3.5">
                         <a
                           href={`https://github.com/${tool.repo}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm font-medium text-zinc-200 hover:text-white inline-flex items-center gap-1"
+                          className="text-sm font-medium inline-flex items-center gap-1.5 group/link"
+                          style={{ color: "var(--text-primary)" }}
                         >
                           {tool.name}
-                          <ArrowUpRight className="w-3 h-3 text-zinc-600" />
+                          <ArrowUpRight className="w-3 h-3 opacity-0 group-hover/link:opacity-100 transition-opacity" style={{ color: "var(--text-tertiary)" }} />
                         </a>
                       </td>
-                      <td className="px-4 py-2.5 text-right text-sm text-zinc-400 tabular-nums">
+                      <td className="px-5 py-3.5 text-right text-sm tabular-nums" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-jetbrains-mono), monospace" }}>
                         {tool.stars.toLocaleString()}
                       </td>
-                      <td className="px-4 py-2.5 text-right text-sm hidden sm:table-cell tabular-nums">
-                        <span
-                          className={
-                            tool.starVelocity > 0
-                              ? "text-emerald-400"
-                              : tool.starVelocity < 0
-                                ? "text-red-400"
-                                : "text-zinc-500"
-                          }
-                        >
-                          {tool.starVelocity >= 0 ? "+" : ""}
-                          {tool.starVelocity.toFixed(1)}/d
+                      <td className="px-5 py-3.5 text-right text-sm hidden sm:table-cell tabular-nums" style={{ fontFamily: "var(--font-jetbrains-mono), monospace" }}>
+                        <span style={{ color: tool.starVelocity > 0 ? "var(--accent-green)" : tool.starVelocity < 0 ? "var(--accent-red)" : "var(--text-tertiary)" }}>
+                          <span className="flex items-center justify-end gap-1">
+                            {tool.starVelocity > 0 && <Zap className="w-3 h-3" />}
+                            {tool.starVelocity >= 0 ? "+" : ""}
+                            {tool.starVelocity.toFixed(1)}/d
+                          </span>
                         </span>
                       </td>
-                      <td className="px-4 py-2.5 text-right text-sm font-semibold text-white tabular-nums">
-                        {tool.overallScore.toFixed(1)}
+                      <td className="px-5 py-3.5 text-right">
+                        <span className="text-sm font-bold tabular-nums" style={{ color: "var(--accent-cyan)", fontFamily: "var(--font-jetbrains-mono), monospace" }}>
+                          {tool.overallScore.toFixed(1)}
+                        </span>
                       </td>
                     </tr>
                   ))}
@@ -248,15 +305,15 @@ export default async function Home() {
           </div>
         )}
 
-        {/* Bottom tagline */}
-        <div className="text-center pt-8 pb-4">
-          <p className="text-xs text-zinc-600">
+        {/* Footer */}
+        <div className="text-center pt-16 pb-4">
+          <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
             Open-source scoring algorithm · Built in public ·{" "}
             <a
               href="https://github.com/aaronloh16/ai-stack-radar"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-zinc-400 transition-colors"
+              className="hover-text-secondary"
             >
               View source
             </a>

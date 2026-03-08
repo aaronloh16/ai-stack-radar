@@ -34,26 +34,32 @@ interface RepoAnalysis {
   diagram: string;
 }
 
-function scoreColor(score: number): string {
-  if (score >= 70) return "text-emerald-400";
-  if (score >= 40) return "text-amber-400";
-  return "text-red-400";
-}
-
-function scoreBg(score: number): string {
-  if (score >= 70) return "bg-emerald-950/50 border-emerald-900/50";
-  if (score >= 40) return "bg-amber-950/50 border-amber-900/50";
-  return "bg-red-950/50 border-red-900/50";
+function scoreStyle(score: number): { color: string; bg: string; border: string } {
+  if (score >= 70) return {
+    color: "var(--accent-green)",
+    bg: "rgba(52,211,153,0.05)",
+    border: "rgba(52,211,153,0.2)",
+  };
+  if (score >= 40) return {
+    color: "var(--accent-amber)",
+    bg: "rgba(251,191,36,0.05)",
+    border: "rgba(251,191,36,0.2)",
+  };
+  return {
+    color: "var(--accent-red)",
+    bg: "rgba(248,113,113,0.05)",
+    border: "rgba(248,113,113,0.2)",
+  };
 }
 
 function StatusIcon({ status }: { status: DetectedTool["status"] }) {
   switch (status) {
     case "accelerating":
-      return <TrendingUp className="w-4 h-4 text-emerald-400" />;
+      return <TrendingUp className="w-4 h-4" style={{ color: "var(--accent-green)" }} />;
     case "stable":
-      return <Minus className="w-4 h-4 text-zinc-400" />;
+      return <Minus className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />;
     case "stagnating":
-      return <TrendingDown className="w-4 h-4 text-red-400" />;
+      return <TrendingDown className="w-4 h-4" style={{ color: "var(--accent-red)" }} />;
   }
 }
 
@@ -64,11 +70,11 @@ function statusLabel(status: DetectedTool["status"]): string {
 function statusColor(status: DetectedTool["status"]): string {
   switch (status) {
     case "accelerating":
-      return "text-emerald-400";
+      return "var(--accent-green)";
     case "stable":
-      return "text-zinc-400";
+      return "var(--text-secondary)";
     case "stagnating":
-      return "text-red-400";
+      return "var(--accent-red)";
   }
 }
 
@@ -109,7 +115,7 @@ export function RepoAnalyzer() {
       <div className="flex gap-3">
         <div className="relative flex-1">
           <div className="absolute left-4 top-1/2 -translate-y-1/2">
-            <Github className="w-5 h-5 text-zinc-500" />
+            <Github className="w-4 h-4" style={{ color: "var(--text-tertiary)" }} />
           </div>
           <input
             type="url"
@@ -117,14 +123,16 @@ export function RepoAnalyzer() {
             onChange={(e) => setRepoUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
             placeholder="https://github.com/owner/repo"
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-12 pr-4 py-3 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
+            className="input-base w-full pl-11 pr-4 py-3 rounded-xl text-sm"
+            style={{ fontFamily: "var(--font-syne), sans-serif" }}
             disabled={loading}
           />
         </div>
         <button
           onClick={handleAnalyze}
           disabled={loading || !repoUrl.trim()}
-          className="px-6 py-3 bg-white text-zinc-900 rounded-xl font-medium hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
+          className="btn-primary px-6 py-3 rounded-xl text-sm inline-flex items-center gap-2 shrink-0"
+          style={{ fontFamily: "var(--font-syne), sans-serif" }}
         >
           {loading ? (
             <>
@@ -141,70 +149,89 @@ export function RepoAnalyzer() {
       </div>
 
       {error && (
-        <div className="mt-6 p-4 bg-red-950/50 border border-red-900 rounded-xl text-red-300 text-sm">
+        <div
+          className="mt-6 p-4 rounded-xl text-sm"
+          style={{ background: "rgba(248,113,113,0.05)", border: "1px solid rgba(248,113,113,0.2)", color: "var(--accent-red)" }}
+        >
           {error}
         </div>
       )}
 
       {loading && (
-        <div className="mt-8 p-6 border border-zinc-800 rounded-xl bg-zinc-900/30 flex items-center gap-3">
-          <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
-          <span className="text-zinc-400">
+        <div
+          className="mt-8 p-6 rounded-xl flex items-center gap-3"
+          style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }}
+        >
+          <Loader2 className="w-5 h-5 animate-spin" style={{ color: "var(--accent-cyan)" }} />
+          <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
             Fetching dependencies and analyzing against momentum data...
           </span>
         </div>
       )}
 
       {result && (
-        <div className="mt-8 space-y-8">
+        <div className="mt-8 space-y-8 animate-fade-in">
           {/* Health Score */}
-          <div
-            className={`p-6 rounded-xl border ${scoreBg(result.overallHealthScore)}`}
-          >
-            <div className="flex items-center gap-5">
+          {(() => {
+            const s = scoreStyle(result.overallHealthScore);
+            return (
               <div
-                className={`text-5xl font-bold ${scoreColor(result.overallHealthScore)}`}
+                className="p-6 rounded-xl"
+                style={{ background: s.bg, border: `1px solid ${s.border}` }}
               >
-                {result.overallHealthScore}
+                <div className="flex items-center gap-6">
+                  <div
+                    className="text-5xl font-bold"
+                    style={{ color: s.color, fontFamily: "var(--font-jetbrains-mono), monospace" }}
+                  >
+                    {result.overallHealthScore}
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold mb-1" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+                      Stack Health Score
+                    </h2>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                      {result.summary}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg font-semibold">Stack Health Score</h2>
-                <p className="text-zinc-400 text-sm mt-1 leading-relaxed">
-                  {result.summary}
-                </p>
-              </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Detected Tools */}
           <div>
-            <h2 className="text-lg font-semibold mb-4">Detected Tools</h2>
+            <h2 className="text-base font-bold mb-4" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+              Detected Tools
+            </h2>
             <div className="grid gap-3">
               {result.detectedTools.map((tool, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-4 border border-zinc-800 rounded-xl bg-zinc-900/30"
+                  className="flex items-center justify-between p-4 rounded-xl"
+                  style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-1">
-                      <span className="font-medium text-zinc-100">
+                      <span className="font-medium text-sm" style={{ color: "var(--text-primary)", fontFamily: "var(--font-syne), sans-serif" }}>
                         {tool.name}
                       </span>
-                      <span className="text-xs px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-400">
+                      <span
+                        className="text-xs px-2.5 py-0.5 rounded-lg"
+                        style={{ background: "var(--border-subtle)", color: "var(--text-secondary)", border: "1px solid var(--border-default)", fontFamily: "var(--font-syne), sans-serif" }}
+                      >
                         {tool.category}
                       </span>
                     </div>
-                    <p className="text-sm text-zinc-500 truncate">{tool.note}</p>
+                    <p className="text-xs truncate" style={{ color: "var(--text-tertiary)" }}>{tool.note}</p>
                   </div>
                   <div className="flex items-center gap-3 ml-4 shrink-0">
                     <StatusIcon status={tool.status} />
-                    <span
-                      className={`text-sm font-medium ${statusColor(tool.status)}`}
-                    >
+                    <span className="text-sm font-medium" style={{ color: statusColor(tool.status), fontFamily: "var(--font-syne), sans-serif" }}>
                       {statusLabel(tool.status)}
                     </span>
                     {tool.momentumScore > 0 && (
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-xs" style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-jetbrains-mono), monospace" }}>
                         {tool.momentumScore.toFixed(1)}
                       </span>
                     )}
@@ -217,24 +244,27 @@ export function RepoAnalyzer() {
           {/* Upgrade Suggestions */}
           {result.suggestions.length > 0 && (
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Lightbulb className="w-4 h-4 text-amber-400" />
-                <h2 className="text-lg font-semibold">Upgrade Suggestions</h2>
+              <div className="flex items-center gap-2.5 mb-4">
+                <Lightbulb className="w-4 h-4" style={{ color: "var(--accent-amber)" }} />
+                <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
+                  Upgrade Suggestions
+                </h2>
               </div>
               <div className="grid gap-3">
                 {result.suggestions.map((suggestion, i) => (
                   <div
                     key={i}
-                    className="p-4 border border-amber-900/30 bg-amber-950/20 rounded-xl"
+                    className="p-4 rounded-xl"
+                    style={{ border: "1px solid rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.03)" }}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-zinc-400">{suggestion.current}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
-                      <span className="font-medium text-zinc-100">
+                      <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{suggestion.current}</span>
+                      <ArrowRight className="w-3.5 h-3.5" style={{ color: "var(--accent-amber)" }} />
+                      <span className="text-sm font-semibold" style={{ color: "var(--text-primary)", fontFamily: "var(--font-syne), sans-serif" }}>
                         {suggestion.suggested}
                       </span>
                     </div>
-                    <p className="text-sm text-zinc-500 leading-relaxed">
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--text-tertiary)" }}>
                       {suggestion.reason}
                     </p>
                   </div>
@@ -246,7 +276,7 @@ export function RepoAnalyzer() {
           {/* Architecture Diagram */}
           {result.diagram && (
             <div>
-              <h2 className="text-lg font-semibold mb-4">
+              <h2 className="text-base font-bold mb-4" style={{ fontFamily: "var(--font-syne), sans-serif" }}>
                 Architecture Overview
               </h2>
               <MermaidDiagram chart={result.diagram} />
