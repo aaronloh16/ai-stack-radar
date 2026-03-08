@@ -7,6 +7,7 @@ import {
   validateMermaidSyntax,
   stripMermaidCodeFences,
 } from "@/lib/mermaid-validate";
+import { sseMessage } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -130,7 +131,18 @@ const STAGE1_TOOL: Anthropic.Tool = {
   },
 };
 
-async function repairDiagram(diagram: string): Promise<string> {
+interface Stage1Result {
+  summary: string;
+  tools: Array<{ name: string; category: string; reason: string }>;
+  diagramDescription: string;
+  buildSteps: string[];
+  tradeoffs: string[];
+}
+
+async function repairDiagram(
+  diagram: string,
+  send: (payload: Record<string, unknown>) => void
+): Promise<string> {
   const validation = await validateMermaidSyntax(diagram);
   if (validation.valid) return diagram;
 
@@ -138,6 +150,10 @@ async function repairDiagram(diagram: string): Promise<string> {
   let current = diagram;
 
   for (let attempt = 1; attempt <= MAX_FIX_ATTEMPTS; attempt++) {
+    send({
+      status: "repairing_diagram",
+      message: `Repairing diagram syntax (attempt ${attempt}/${MAX_FIX_ATTEMPTS})...`,
+    });
     console.log(
       `Mermaid repair attempt ${attempt}/${MAX_FIX_ATTEMPTS}: ${validation.error}`
     );
@@ -183,25 +199,39 @@ Keep the diagram meaning and structure intact. Only fix the syntax.`,
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const { prompt } = await request.json();
+  const body = await request.json();
+  const { prompt } = body;
 
-    if (!prompt || typeof prompt !== "string" || prompt.length > 2000) {
-      return NextResponse.json({ error: "Invalid prompt" }, { status: 400 });
-    }
+  if (!prompt || typeof prompt !== "string" || prompt.length > 2000) {
+    return NextResponse.json({ error: "Invalid prompt" }, { status: 400 });
+  }
 
-    const leaderboardContext = await getLeaderboardContext();
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (payload: Record<string, unknown>) => {
+        controller.enqueue(encoder.encode(sseMessage(payload)));
+      };
 
-    // Stage 1: Select tools and describe the architecture
-    const stage1Response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 3072,
-      tools: [STAGE1_TOOL],
-      tool_choice: { type: "tool", name: "describe_architecture" },
-      messages: [
-        {
-          role: "user",
-          content: `You are an AI architecture advisor. You have access to live developer sentiment data that tracks which AI/dev tools are gaining momentum right now.
+      try {
+        send({ status: "started", message: "Fetching leaderboard context..." });
+        const leaderboardContext = await getLeaderboardContext();
+
+        // Stage 1: Select tools and describe the architecture
+        send({
+          status: "selecting_tools",
+          message: "Selecting tools and designing architecture...",
+        });
+
+        const stage1Response = await anthropic.messages.create({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 3072,
+          tools: [STAGE1_TOOL],
+          tool_choice: { type: "tool", name: "describe_architecture" },
+          messages: [
+            {
+              role: "user",
+              content: `You are an AI architecture advisor. You have access to live developer sentiment data that tracks which AI/dev tools are gaining momentum right now.
 
 Here is the current momentum leaderboard (sorted by overall momentum score):
 ${leaderboardContext}
@@ -211,37 +241,40 @@ Based on this data, recommend a tech stack for the following project. Prefer too
 In your diagramDescription, be very detailed about the architecture: list every component, which subgraphs/layers they belong to, how data flows between them, and what each connection represents. This description will be used to generate a Mermaid diagram in a separate step.
 
 Project description: ${prompt}`,
-        },
-      ],
-    });
+            },
+          ],
+        });
 
-    const stage1Block = stage1Response.content.find(
-      (block): block is Anthropic.ToolUseBlock => block.type === "tool_use"
-    );
+        const stage1Block = stage1Response.content.find(
+          (block): block is Anthropic.ToolUseBlock => block.type === "tool_use"
+        );
 
-    if (!stage1Block) {
-      return NextResponse.json(
-        { error: "Failed to generate architecture" },
-        { status: 500 }
-      );
-    }
+        if (!stage1Block) {
+          send({ status: "error", error: "Failed to generate architecture" });
+          controller.close();
+          return;
+        }
 
-    const stage1 = stage1Block.input as {
-      summary: string;
-      tools: Array<{ name: string; category: string; reason: string }>;
-      diagramDescription: string;
-      buildSteps: string[];
-      tradeoffs: string[];
-    };
+        const stage1 = stage1Block.input as Stage1Result;
 
-    // Stage 2: Generate Mermaid diagram from the architecture description
-    const stage2Response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 2048,
-      messages: [
-        {
-          role: "user",
-          content: `Generate a Mermaid.js flowchart TD diagram based on this architecture description. Return ONLY valid Mermaid.js code — no explanation, no markdown fences, no commentary.
+        send({
+          status: "tools_complete",
+          message: "Architecture designed. Generating diagram...",
+        });
+
+        // Stage 2: Generate Mermaid diagram from the architecture description
+        send({
+          status: "generating_diagram",
+          message: "Generating Mermaid diagram...",
+        });
+
+        const stage2Response = await anthropic.messages.create({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 2048,
+          messages: [
+            {
+              role: "user",
+              content: `Generate a Mermaid.js flowchart TD diagram based on this architecture description. Return ONLY valid Mermaid.js code — no explanation, no markdown fences, no commentary.
 
 Architecture:
 ${stage1.diagramDescription}
@@ -249,33 +282,47 @@ ${stage1.diagramDescription}
 Tools in the stack: ${stage1.tools.map((t) => t.name).join(", ")}
 
 ${MERMAID_RULES}`,
-        },
-      ],
-    });
+            },
+          ],
+        });
 
-    const diagramText = stage2Response.content
-      .filter((b): b is Anthropic.TextBlock => b.type === "text")
-      .map((b) => b.text)
-      .join("");
-    let diagram = stripMermaidCodeFences(diagramText);
+        const diagramText = stage2Response.content
+          .filter((b): b is Anthropic.TextBlock => b.type === "text")
+          .map((b) => b.text)
+          .join("");
+        let diagram = stripMermaidCodeFences(diagramText);
 
-    // Validate and repair if needed
-    diagram = await repairDiagram(diagram);
+        // Validate and repair if needed
+        send({
+          status: "validating_diagram",
+          message: "Validating diagram syntax...",
+        });
+        diagram = await repairDiagram(diagram, send);
 
-    return NextResponse.json({
-      result: {
-        summary: stage1.summary,
-        tools: stage1.tools,
-        diagram,
-        buildSteps: stage1.buildSteps,
-        tradeoffs: stage1.tradeoffs,
-      },
-    });
-  } catch (error) {
-    console.error("Generate API error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate architecture" },
-      { status: 500 }
-    );
-  }
+        send({
+          status: "complete",
+          result: {
+            summary: stage1.summary,
+            tools: stage1.tools,
+            diagram,
+            buildSteps: stage1.buildSteps,
+            tradeoffs: stage1.tradeoffs,
+          },
+        });
+      } catch (error) {
+        console.error("Generate API error:", error);
+        send({ status: "error", error: "Failed to generate architecture" });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
 }
