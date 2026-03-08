@@ -82,7 +82,8 @@ const TOOL_DEFINITION: Anthropic.Tool = {
       },
       diagram: {
         type: "string",
-        description: "Mermaid.js diagram showing the architecture (flowchart TD format)",
+        description:
+          "Mermaid.js flowchart TD diagram showing the architecture. MUST use valid syntax: quote node labels containing special characters, no classDef in subgraph declarations, no spaces inside pipe characters for edge labels, no subgraph aliases.",
       },
       buildSteps: {
         type: "array",
@@ -124,7 +125,22 @@ ${leaderboardContext}
 
 Based on this data, recommend a tech stack for the following project. Prefer tools with high momentum scores — they indicate strong community adoption and active development. But also consider maturity, fit for the use case, and practical considerations.
 
-Always include a Mermaid.js architecture diagram using flowchart TD format. Make it clean and readable.
+Generate a Mermaid.js architecture diagram using flowchart TD format. Follow these CRITICAL syntax rules:
+1. QUOTE all node labels containing special characters (parentheses, slashes, brackets, dots, ampersands).
+   CORRECT: A["API Gateway (/api)"]
+   WRONG: A[API Gateway (/api)]
+2. DO NOT apply classDef styles in subgraph declarations.
+   CORRECT: subgraph Frontend
+   WRONG: subgraph Frontend:::style
+3. NO spaces between pipe characters and edge labels.
+   CORRECT: A -->|"sends request"| B
+   WRONG: A -->| "sends request" | B
+4. DO NOT give subgraphs an alias like nodes.
+   CORRECT: subgraph "Backend Services"
+   WRONG: subgraph backend["Backend Services"]
+5. DO NOT include %%{init:...}%% directives — theme is handled externally.
+6. Use classDef to color-code different component types (databases, services, APIs, etc.).
+7. Keep the diagram primarily vertical (TD). Avoid long horizontal chains of nodes.
 
 Project description: ${prompt}`,
         },
