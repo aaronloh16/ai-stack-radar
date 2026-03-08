@@ -24,7 +24,7 @@ jobs:
         run: npx tsx scripts/collect-github.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Collect HN data
         run: npx tsx scripts/collect-hn.ts
