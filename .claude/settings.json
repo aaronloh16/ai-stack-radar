@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__playwright__*",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(gt:*)",
+      "Bash(vercel:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

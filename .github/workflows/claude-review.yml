@@ -1,0 +1,21 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          direct_prompt: |
+            Review this PR and provide feedback on code quality, potential bugs,
+            and suggestions for improvement. Be concise and actionable.
