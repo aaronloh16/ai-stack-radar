@@ -1,93 +1,100 @@
-# Portfolio Pulse — Personalized AI Tool Tracking
+# Portfolio Pulse — Revised Plan
 
-## Vision
+## Design Principles
 
-Turn AI Stack Radar from a leaderboard you visit into a portfolio you check daily — like following stocks, but for the AI tools in your stack. You define what you use, we tell you what changed and what you should care about.
+- **Clean and informative.** No gamification, no notification noise, no AI for the sake of AI.
+- **Useful enough to bookmark.** The data should be the draw, not gimmicks.
+- **One shareable artifact** that's genuinely interesting — a stack card with real data.
 
 ---
 
-## Phase 1: My Stack (identity without auth)
+## Phase 1: My Stack
 
-No login required. Use a cookie-based anonymous identity with an optional upgrade path later.
+No login. Cookie-based anonymous identity. Users pick the tools they actually use from the leaderboard.
 
-### 1A. `user_stacks` table + cookie identity
+### 1A. Cookie identity + `user_stacks` table
 
-**Schema addition:**
 ```sql
 user_stacks (
   id            serial PRIMARY KEY,
-  visitor_id    varchar(32) NOT NULL,      -- nanoid stored in httpOnly cookie
+  visitor_id    varchar(32) NOT NULL,      -- nanoid, httpOnly cookie, 1yr expiry
   tool_id       integer REFERENCES tools,
   added_at      timestamp DEFAULT now(),
   UNIQUE(visitor_id, tool_id)
 )
 ```
 
-- On first visit, set a `visitor_id` cookie (nanoid, 32 chars, httpOnly, 1 year expiry)
-- No signup friction — users can start saving tools immediately
-- Later: optional email attachment for cross-device sync (Phase 3)
-
-**Files to create/modify:**
+**Files:**
 - `src/lib/schema.ts` — add `userStacks` table
-- `src/app/api/my-stack/route.ts` — GET (list), POST (add tool), DELETE (remove tool)
-- `src/lib/visitor.ts` — helper to read/set visitor cookie via `cookies()` API
+- `src/lib/visitor.ts` — read/set visitor cookie via Next.js `cookies()` API
+- `src/app/api/my-stack/route.ts` — GET (list saved tools with scores), POST (add), DELETE (remove)
 
-### 1B. "Save to My Stack" UI on leaderboard
+### 1B. Save button on leaderboard
 
-Add a bookmark/star icon next to each tool on the leaderboard. Clicking it saves the tool to the user's stack via the API. Visual feedback: filled icon for saved tools.
+Small bookmark icon per tool row. Filled = saved, outline = not saved. No animation, no toast — just a quiet toggle.
 
-**Files to modify:**
-- `src/app/leaderboard/page.tsx` — add save button per row
-- New client component: `src/components/save-tool-button.tsx`
+**Files:**
+- `src/components/save-tool-button.tsx` — client component
+- `src/app/leaderboard/page.tsx` — add button to each row, pass saved tool IDs from cookie
 
 ### 1C. `/my-stack` page
 
-A dedicated page showing:
-- Tools the user is tracking (with current scores, velocity, rank)
-- A mini version of the daily digest filtered to just their tools
-- "Add more tools" link to leaderboard
+Simple table of your saved tools with their current data: rank, stars, velocity, score, category. Sorted by score. A "Browse leaderboard to add tools" link if empty.
 
-**Files to create:**
-- `src/app/my-stack/page.tsx` — server component, reads cookie, queries DB
-- `src/components/my-stack-list.tsx` — client component for interactive list
+Below the table: a one-line summary like "5 tools tracked · Average rank #12 · Strongest: LangChain (#2)"
+
+**Files:**
+- `src/app/my-stack/page.tsx` — server component, reads cookie, joins against momentum data
+- Add "My Stack" link to nav bar
 
 ---
 
-## Phase 2: Portfolio Digest (personalized daily updates)
+## Phase 2: Stack Card (the shareable thing)
 
-### 2A. `portfolio_digests` table
+A server-rendered PNG image of your stack — clean, dark-themed, data-dense. Generated via `@vercel/og` (Satori). No AI involved — just data and good typography.
 
-```sql
-portfolio_digests (
-  id            serial PRIMARY KEY,
-  visitor_id    varchar(32) NOT NULL,
-  headline      text NOT NULL,
-  body          text NOT NULL,
-  highlights    jsonb NOT NULL,
-  generated_at  timestamp DEFAULT now()
-)
+### What the card shows
+
+```
+┌──────────────────────────────────────────┐
+│  AI STACK RADAR                          │
+│                                          │
+│  My Stack · 5 tools · March 2026         │
+│                                          │
+│  #2   LangChain        ★ 102k   ↑ 42/d  │
+│  #5   Ollama           ★ 89k    ↑ 38/d   │
+│  #11  ChromaDB         ★ 18k    ↑ 12/d   │
+│  #14  LangGraph        ★ 9k     ↑ 8/d    │
+│  #23  Instructor       ★ 7k     ↑ 4/d    │
+│                                          │
+│  Avg rank #11 · Top category: LLM        │
+│  aistackradar.com                        │
+└──────────────────────────────────────────┘
 ```
 
-### 2B. On-demand portfolio digest generation
+Dark background matching the site aesthetic. Syne + JetBrains Mono fonts. Rank, tool name, star count, velocity. Clean and legible at Twitter/LinkedIn card size (1200×630).
 
-When a user visits `/my-stack`, if no digest exists for today:
-1. Query their saved tools + latest deltas
-2. Call Claude with their specific tool set as context
-3. Generate a personalized digest: "Here's what changed in YOUR stack today"
-4. Cache in `portfolio_digests` for the rest of the day
+### 2A. OG image route
 
-This is demand-driven (not cron) — only generate for active users. Use the same Claude prompt pattern as `generate-digest.ts` but scoped to the user's tools.
+`src/app/api/stack-card/route.tsx` — accepts a `visitor_id` or a `tools` query param (comma-separated tool IDs). Returns a PNG via `@vercel/og`.
 
-**Files to create:**
-- `src/app/api/my-stack/digest/route.ts` — generates or returns cached portfolio digest
-- Reuse digest generation logic from `scripts/generate-digest.ts` (extract shared utility)
+This doubles as:
+- **OG image** for `/my-stack` (auto-embedded via metadata)
+- **Download button** on `/my-stack` page ("Download card")
+- **Direct shareable link** — `/api/stack-card?tools=1,5,11,14,23`
 
-### 2C. Portfolio Pulse UI
+### 2B. Share flow on `/my-stack`
 
-On the `/my-stack` page, show:
-- **Personalized headline** (e.g., "LangChain shipped v0.3 — your RAG stack just got faster")
-- **Per-tool cards** with sparkline-style indicators (score trend over last 7 days)
-- **Alerts** for big movements: tool entered/left top 10, score changed >20%, new HN discussion
+Two buttons below the stack table:
+- **"Copy link"** — copies a URL like `aistackradar.com/my-stack?tools=1,5,11,14,23` (tool IDs in URL so it works without cookies)
+- **"Download card"** — fetches the PNG and triggers download
+
+The `/my-stack` page accepts an optional `?tools=` query param so shared links work for anyone — they see the stack even without the cookie.
+
+**Files:**
+- `src/app/api/stack-card/route.tsx` — Satori image generation
+- `src/app/my-stack/page.tsx` — add share/download buttons, handle `?tools=` param
+- `package.json` — add `@vercel/og` dependency
 
 ---
 
@@ -98,105 +105,50 @@ On the `/my-stack` page, show:
 ```sql
 tool_submissions (
   id            serial PRIMARY KEY,
-  visitor_id    varchar(32),
   github_repo   varchar(255) NOT NULL UNIQUE,
   name          varchar(100) NOT NULL,
   category      varchar(50) NOT NULL,
-  reason        text,                        -- "why should we track this?"
-  status        varchar(20) DEFAULT 'pending', -- pending | approved | rejected
+  description   text,
+  status        varchar(20) DEFAULT 'pending',  -- pending | approved | rejected
   submitted_at  timestamp DEFAULT now()
 )
 ```
 
-### 3B. Submit tool flow
+No visitor tracking on submissions — keep it simple.
 
-A simple form: GitHub repo URL (required), name, category (dropdown of existing categories), and an optional reason field.
+### 3B. Submission form
 
-**Validation on submit:**
-- Verify the GitHub repo exists (hit GitHub API)
-- Check it's not already in `tools.json` or previously submitted
-- Auto-extract: name (from repo), description, star count
+Minimal form at `/submit`:
+1. Paste a GitHub repo URL (e.g., `github.com/owner/repo`)
+2. On blur/submit, auto-fetch repo metadata via GitHub API: name, description, stars
+3. User picks a category from existing categories dropdown
+4. Submit
 
-**Files to create:**
-- `src/app/api/submit-tool/route.ts` — POST handler with GitHub validation
-- `src/app/submit/page.tsx` — submission form page
+**Validation:**
+- Repo must exist on GitHub
+- Repo must not already be tracked (check against `tools` table)
+- Repo must not already be submitted (check against `tool_submissions`)
+- Must have at least 100 stars (filters out personal projects)
+
+**Files:**
+- `src/lib/schema.ts` — add `toolSubmissions` table
+- `src/app/api/submit-tool/route.ts` — POST with GitHub API validation
+- `src/app/submit/page.tsx` — form page
 - `src/components/tool-submit-form.tsx` — client form component
 
-### 3C. Auto-triage with Claude
+### 3C. Review via Drizzle Studio
 
-When a tool is submitted, run a quick Claude call to:
-- Categorize it (confirm or suggest better category)
-- Assess relevance ("is this an AI/ML dev tool?")
-- Write a one-line description
-- Flag if it overlaps with an existing tracked tool
+No admin UI. Review pending submissions in Drizzle Studio (`npm run db:studio`). Approved tools get manually added to `tools.json` and picked up on next collector run.
 
-Store Claude's assessment in a `triage_notes` jsonb column. This helps with manual review but doesn't auto-approve.
-
-### 3D. Admin review (simple)
-
-No admin UI needed initially. Review submissions via Drizzle Studio (`npm run db:studio`) or a simple API route that lists pending submissions. Approved tools get added to `tools.json` and seeded on next collector run.
+Later, if volume warrants it, add a simple `/admin/submissions` page behind a password.
 
 ---
 
-## Phase 4: Notifications & Alerts
+## Phase 4: Release Detection
 
-### 4A. `alert_rules` table
+This is pure data — no AI, just facts. "LangChain shipped v0.3.1 two days ago" is more useful than an AI summary of what it means.
 
-```sql
-alert_rules (
-  id            serial PRIMARY KEY,
-  visitor_id    varchar(32) NOT NULL,
-  tool_id       integer REFERENCES tools,
-  rule_type     varchar(30) NOT NULL,        -- 'rank_change' | 'score_spike' | 'hn_mention' | 'release'
-  threshold     real,                        -- e.g., 5.0 for "score changed by 5+"
-  created_at    timestamp DEFAULT now()
-)
-
-alert_events (
-  id            serial PRIMARY KEY,
-  visitor_id    varchar(32) NOT NULL,
-  tool_id       integer REFERENCES tools,
-  rule_id       integer REFERENCES alert_rules,
-  title         text NOT NULL,
-  body          text NOT NULL,
-  seen          boolean DEFAULT false,
-  created_at    timestamp DEFAULT now()
-)
-```
-
-### 4B. Alert generation (cron step)
-
-Add a new script `scripts/generate-alerts.ts` that runs after the digest:
-1. For each user with alert rules, check if any thresholds were crossed
-2. Generate `alert_events` for triggered rules
-3. Claude summarizes each alert into a human-readable title + body
-
-### 4C. Notification bell UI
-
-- Bell icon in nav bar with unread count badge
-- Dropdown showing recent alerts
-- Mark-as-read on click
-- Link to the relevant tool on the leaderboard
-
-**Files to create:**
-- `src/components/notification-bell.tsx` — client component
-- `src/app/api/alerts/route.ts` — GET (list), PATCH (mark read)
-- `scripts/generate-alerts.ts` — cron script
-
-### 4D. Optional email digest (future)
-
-Allow users to attach an email to their visitor ID. Send a weekly email rollup of their portfolio changes. Uses Resend or similar transactional email service.
-
----
-
-## Phase 5: Release Detection
-
-### 5A. GitHub Releases collector
-
-New script `scripts/collect-releases.ts`:
-- For each tracked tool, hit `GET /repos/{owner}/{repo}/releases?per_page=1`
-- Compare latest release tag against stored value
-- If new: store release info, flag for digest inclusion
+### 4A. `tool_releases` table + collector
 
 ```sql
 tool_releases (
@@ -204,50 +156,45 @@ tool_releases (
   tool_id       integer REFERENCES tools,
   tag           varchar(100) NOT NULL,
   title         text,
-  body          text,
   published_at  timestamp,
+  release_url   text,
   collected_at  timestamp DEFAULT now(),
   UNIQUE(tool_id, tag)
 )
 ```
 
-### 5B. Release integration into digests
+New script `scripts/collect-releases.ts`:
+- Hit `GET /repos/{owner}/{repo}/releases?per_page=1` for each tool
+- If the tag is new, insert it
+- Run daily after the other collectors
 
-When the daily digest runs, include release data:
-- "LangChain v0.3.0 shipped yesterday — here's what it means for your stack"
-- Claude gets release notes as context, writes a developer-friendly summary
+### 4B. Release badges on leaderboard + my-stack
 
-### 5C. Release badges on leaderboard
+If a tool shipped a release in the last 7 days, show a small "v2.1" badge next to the name. Links to the GitHub release page. Simple, informative, no noise.
 
-Show a "NEW" badge next to tools that shipped a release in the last 7 days. Links to the GitHub release page.
+### 4C. Releases in daily digest
+
+Feed new releases into the existing `generate-digest.ts` as additional context. The digest script already calls Claude — just give it more signal. No new AI calls, no new tables.
 
 ---
 
 ## Implementation Order
 
-| Step | What | Effort | Dependencies |
-|------|------|--------|-------------|
-| 1A | Cookie identity + `user_stacks` table | Small | None |
-| 1B | Save button on leaderboard | Small | 1A |
-| 1C | `/my-stack` page | Medium | 1A, 1B |
-| 3A-B | Tool submission form + table | Medium | None (parallel with 1) |
-| 2A-B | Portfolio digest generation | Medium | 1C |
-| 2C | Portfolio pulse UI | Medium | 2B |
-| 3C | Auto-triage submissions with Claude | Small | 3B |
-| 5A | Release detection collector | Medium | None (parallel) |
-| 5B-C | Release integration into digests + badges | Small | 5A, existing digest |
-| 4A-C | Alert rules + notification bell | Large | 1A, 2B |
-| 4D | Email notifications | Medium | 4C |
+| PR | What | Scope |
+|----|------|-------|
+| **PR 1** | My Stack MVP (1A + 1B + 1C) | Schema, API, cookie, leaderboard save buttons, `/my-stack` page, nav link |
+| **PR 2** | Stack Card (2A + 2B) | `@vercel/og` image route, share/download on `/my-stack` |
+| **PR 3** | Tool Submissions (3A + 3B + 3C) | Schema, API, `/submit` form page |
+| **PR 4** | Release Detection (4A + 4B + 4C) | Schema, collector script, badges, digest integration |
 
-**Recommended first PR:** 1A + 1B + 1C (My Stack MVP) — gives users a reason to come back daily.
-**Recommended second PR:** 3A + 3B (Tool Submissions) — grows the tool catalog via community.
-**Recommended third PR:** 2A + 2B + 2C (Portfolio Digest) — the killer feature that makes it sticky.
+Each PR is independently shippable. No PR depends on a later one.
 
 ---
 
-## What this unlocks (product)
+## What we're NOT building
 
-- **Retention loop:** User saves stack → gets personalized daily updates → comes back daily
-- **Growth loop:** User submits tool → tool gets tracked → tool's community discovers the site
-- **Content flywheel:** More tools × more users × daily Claude digests = unique daily content that no competitor has
-- **Future monetization:** Premium alerts (real-time instead of daily), team dashboards, "powered by AI Stack Radar" badges for READMEs
+- ~~Notification bell / alerts system~~ — adds complexity, most users won't configure rules
+- ~~Personalized AI digests per user~~ — expensive (Claude call per active user per day), overkill
+- ~~Email notifications~~ — need auth, deliverability concerns, premature
+- ~~Auto-triage submissions with Claude~~ — unnecessary for the volume we'll see initially
+- ~~Gamification~~ — no streaks, badges, points, or leaderboards of users
