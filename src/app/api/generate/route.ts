@@ -3,33 +3,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
 import { tools, momentumScores, githubSnapshots } from "@/lib/schema";
 import { desc, eq } from "drizzle-orm";
-import {
-  validateMermaidSyntax,
-  stripMermaidCodeFences,
-} from "@/lib/mermaid-validate";
 import { sseMessage } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const anthropic = new Anthropic();
-
-const MERMAID_RULES = `Follow these CRITICAL Mermaid.js syntax rules:
-1. QUOTE all node labels containing special characters (parentheses, slashes, brackets, dots, ampersands).
-   CORRECT: A["API Gateway (/api)"]
-   WRONG: A[API Gateway (/api)]
-2. DO NOT apply classDef styles in subgraph declarations.
-   CORRECT: subgraph Frontend
-   WRONG: subgraph Frontend:::style
-3. NO spaces between pipe characters and edge labels.
-   CORRECT: A -->|"sends request"| B
-   WRONG: A -->| "sends request" | B
-4. DO NOT give subgraphs an alias like nodes.
-   CORRECT: subgraph "Backend Services"
-   WRONG: subgraph backend["Backend Services"]
-5. DO NOT include %%{init:...}%% directives — theme is handled externally.
-6. Use classDef to color-code different component types (databases, services, APIs, etc.).
-7. Keep the diagram primarily vertical (TD). Avoid long horizontal chains.`;
 
 async function getLeaderboardContext(): Promise<string> {
   const allTools = await db.select().from(tools);
@@ -141,65 +120,6 @@ interface Stage1Result {
   tradeoffs: string[];
 }
 
-async function repairDiagram(
-  diagram: string,
-  send: (payload: Record<string, unknown>) => void
-): Promise<string> {
-  const validation = await validateMermaidSyntax(diagram);
-  if (validation.valid) return diagram;
-
-  const MAX_FIX_ATTEMPTS = 3;
-  let current = diagram;
-
-  for (let attempt = 1; attempt <= MAX_FIX_ATTEMPTS; attempt++) {
-    send({
-      status: "repairing_diagram",
-      message: `Repairing diagram syntax (attempt ${attempt}/${MAX_FIX_ATTEMPTS})...`,
-    });
-    console.log(
-      `Mermaid repair attempt ${attempt}/${MAX_FIX_ATTEMPTS}: ${validation.error}`
-    );
-    const fixResponse = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 2048,
-      messages: [
-        {
-          role: "user",
-          content: `Fix this Mermaid.js diagram syntax error. Return ONLY the corrected Mermaid code — no explanation, no markdown fences.
-
-Broken diagram:
-${current}
-
-Parser error:
-${validation.error}
-
-${MERMAID_RULES}
-Keep the diagram meaning and structure intact. Only fix the syntax.`,
-        },
-      ],
-    });
-
-    const fixedText = fixResponse.content
-      .filter((b): b is Anthropic.TextBlock => b.type === "text")
-      .map((b) => b.text)
-      .join("");
-    current = stripMermaidCodeFences(fixedText);
-
-    const revalidation = await validateMermaidSyntax(current);
-    if (revalidation.valid) {
-      console.log(`Mermaid repair succeeded on attempt ${attempt}`);
-      return current;
-    }
-    if (attempt === MAX_FIX_ATTEMPTS) {
-      console.warn(
-        "Mermaid repair failed after max attempts, using last attempt"
-      );
-    }
-  }
-
-  return current;
-}
-
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { prompt } = body;
@@ -261,52 +181,15 @@ Project description: ${prompt}`,
 
         send({
           status: "tools_complete",
-          message: "Architecture designed. Generating diagram...",
+          message: "Architecture designed.",
         });
-
-        // Stage 2: Generate Mermaid diagram from the architecture description
-        send({
-          status: "generating_diagram",
-          message: "Generating Mermaid diagram...",
-        });
-
-        const stage2Response = await anthropic.messages.create({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 2048,
-          messages: [
-            {
-              role: "user",
-              content: `Generate a Mermaid.js flowchart TD diagram based on this architecture description. Return ONLY valid Mermaid.js code — no explanation, no markdown fences, no commentary.
-
-Architecture:
-${stage1.diagramDescription}
-
-Tools in the stack: ${stage1.tools.map((t) => t.name).join(", ")}
-
-${MERMAID_RULES}`,
-            },
-          ],
-        });
-
-        const diagramText = stage2Response.content
-          .filter((b): b is Anthropic.TextBlock => b.type === "text")
-          .map((b) => b.text)
-          .join("");
-        let diagram = stripMermaidCodeFences(diagramText);
-
-        // Validate and repair if needed
-        send({
-          status: "validating_diagram",
-          message: "Validating diagram syntax...",
-        });
-        diagram = await repairDiagram(diagram, send);
 
         send({
           status: "complete",
           result: {
             summary: stage1.summary,
             tools: stage1.tools,
-            diagram,
+            diagramDescription: stage1.diagramDescription,
             buildSteps: stage1.buildSteps,
             tradeoffs: stage1.tradeoffs,
           },

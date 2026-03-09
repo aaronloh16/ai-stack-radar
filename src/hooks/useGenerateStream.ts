@@ -8,16 +8,13 @@ export type GenerateStatus =
   | "started"
   | "selecting_tools"
   | "tools_complete"
-  | "generating_diagram"
-  | "validating_diagram"
-  | "repairing_diagram"
   | "complete"
   | "error";
 
-interface ArchResult {
+export interface ArchResult {
   summary: string;
   tools: Array<{ name: string; category: string; reason: string }>;
-  diagram: string;
+  diagramDescription: string;
   buildSteps: string[];
   tradeoffs: string[];
 }
@@ -32,10 +29,7 @@ interface GenerateStreamState {
 const STATUS_MESSAGES: Record<string, string> = {
   started: "Fetching leaderboard context...",
   selecting_tools: "Selecting tools and designing architecture...",
-  tools_complete: "Architecture designed. Generating diagram...",
-  generating_diagram: "Generating Mermaid diagram...",
-  validating_diagram: "Validating diagram syntax...",
-  repairing_diagram: "Repairing diagram syntax...",
+  tools_complete: "Architecture designed.",
   complete: "Done!",
 };
 

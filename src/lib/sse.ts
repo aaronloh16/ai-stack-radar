@@ -8,7 +8,7 @@ export interface SSEMessage {
   result?: {
     summary: string;
     tools: Array<{ name: string; category: string; reason: string }>;
-    diagram: string;
+    diagramDescription: string;
     buildSteps: string[];
     tradeoffs: string[];
   };
