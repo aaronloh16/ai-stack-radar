@@ -4,7 +4,14 @@
       "mcp__playwright__*",
       "Bash(npm:*)",
       "Bash(npx:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(gt:*)",
+      "Bash(neonctl:*)",
+      "Bash(vercel:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)"
     ]
   }
 }
