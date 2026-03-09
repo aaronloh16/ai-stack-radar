@@ -133,15 +133,29 @@ async function calculateMomentumScores() {
       starVelocity = estimateInitialVelocity(snapshots[0].stars);
     }
 
-    const overallScore = starVelocity;
+    const [latestMomentum] = await db
+      .select()
+      .from(momentumScores)
+      .where(eq(momentumScores.toolId, tool.id))
+      .orderBy(desc(momentumScores.calculatedAt))
+      .limit(1);
+
+    const hnMentions7d = latestMomentum?.hnMentions7d ?? 0;
+    const hnPoints7d = latestMomentum?.hnPoints7d ?? 0;
+    const npmDownloads7d = latestMomentum?.npmDownloads7d ?? 0;
+    const pypiDownloads7d = latestMomentum?.pypiDownloads7d ?? 0;
+
+    const hnBoost = hnPoints7d * 0.1 + hnMentions7d * 2;
+    const downloadBoost = (npmDownloads7d + pypiDownloads7d) / 1000;
+    const overallScore = starVelocity + hnBoost + downloadBoost;
 
     await db.insert(momentumScores).values({
       toolId: tool.id,
       starVelocity: roundScore(starVelocity),
-      hnMentions7d: 0,
-      hnPoints7d: 0,
-      npmDownloads7d: 0,
-      pypiDownloads7d: 0,
+      hnMentions7d,
+      hnPoints7d,
+      npmDownloads7d,
+      pypiDownloads7d,
       overallScore: roundScore(overallScore),
     });
 

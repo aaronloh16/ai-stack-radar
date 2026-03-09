@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { tools, momentumScores, githubSnapshots } from "@/lib/schema";
 import { desc, eq } from "drizzle-orm";
 import { sseMessage } from "@/lib/sse";
+import {
+  isGeneratedArchitectureResult,
+  type GeneratedArchitectureResult,
+} from "@/lib/architecture";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -112,19 +116,19 @@ const STAGE1_TOOL: Anthropic.Tool = {
   },
 };
 
-interface Stage1Result {
-  summary: string;
-  tools: Array<{ name: string; category: string; reason: string }>;
-  diagramDescription: string;
-  buildSteps: string[];
-  tradeoffs: string[];
-}
-
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { prompt } = body;
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-  if (!prompt || typeof prompt !== "string" || prompt.length > 2000) {
+  const prompt = typeof (body as { prompt?: unknown })?.prompt === "string"
+    ? (body as { prompt: string }).prompt.trim()
+    : "";
+
+  if (!prompt || prompt.length > 2000) {
     return NextResponse.json({ error: "Invalid prompt" }, { status: 400 });
   }
 
@@ -177,7 +181,16 @@ Project description: ${prompt}`,
           return;
         }
 
-        const stage1 = stage1Block.input as Stage1Result;
+        if (!isGeneratedArchitectureResult(stage1Block.input)) {
+          send({
+            status: "error",
+            error: "Model returned an invalid architecture format",
+          });
+          controller.close();
+          return;
+        }
+
+        const stage1: GeneratedArchitectureResult = stage1Block.input;
 
         send({
           status: "tools_complete",

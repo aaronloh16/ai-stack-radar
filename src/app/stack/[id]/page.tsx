@@ -2,25 +2,21 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MermaidDiagram } from "@/components/mermaid-diagram";
 import { CopyButton } from "@/components/copy-button";
+import {
+  isSharedArchitectureResult,
+  type SharedArchitectureResult,
+} from "@/lib/architecture";
 
 export const dynamic = "force-dynamic";
-
-interface ArchResult {
-  summary: string;
-  tools: Array<{ name: string; category: string; reason: string }>;
-  diagram: string;
-  buildSteps: string[];
-  tradeoffs: string[];
-}
 
 interface SharedStack {
   id: string;
   prompt: string;
-  result: ArchResult;
+  result: SharedArchitectureResult;
   createdAt: string;
 }
 
-function buildMarkdown(prompt: string, result: ArchResult): string {
+function buildMarkdown(prompt: string, result: SharedArchitectureResult): string {
   return `# Architecture: ${prompt}
 
 ## Summary
@@ -58,11 +54,12 @@ async function getStack(id: string): Promise<SharedStack | null> {
       .limit(1);
 
     if (!stack) return null;
+    if (!isSharedArchitectureResult(stack.result)) return null;
 
     return {
       id: stack.id,
       prompt: stack.prompt,
-      result: stack.result as ArchResult,
+      result: stack.result,
       createdAt: stack.createdAt.toISOString(),
     };
   } catch {

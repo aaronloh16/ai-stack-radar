@@ -33,13 +33,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = await request.json();
-  const { diagramDescription, tools } = body;
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const diagramDescription =
+    typeof (body as { diagramDescription?: unknown })?.diagramDescription ===
+    "string"
+      ? (body as { diagramDescription: string }).diagramDescription.trim()
+      : "";
+  const tools =
+    Array.isArray((body as { tools?: unknown })?.tools) &&
+    (body as { tools: unknown[] }).tools.every(
+      (item) => typeof item === "string" && item.trim().length > 0
+    )
+      ? (body as { tools: string[] }).tools.map((tool) => tool.trim())
+      : [];
 
   if (
     !diagramDescription ||
-    typeof diagramDescription !== "string" ||
-    !Array.isArray(tools) ||
+    diagramDescription.length > 8000 ||
     tools.length === 0
   ) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });

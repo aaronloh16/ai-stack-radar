@@ -66,7 +66,13 @@ describe("POST /api/share", () => {
     const res = await POST(
       makePostRequest({
         prompt: "Build a chatbot",
-        result: { summary: "test", tools: [] },
+        result: {
+          summary: "test",
+          tools: [{ name: "Next.js", category: "framework", reason: "Fast DX" }],
+          diagram: "graph TD; A-->B",
+          buildSteps: ["Step 1"],
+          tradeoffs: ["Tradeoff 1"],
+        },
       })
     );
 
@@ -84,13 +90,43 @@ describe("POST /api/share", () => {
     const res = await POST(
       makePostRequest({
         prompt: "test",
-        result: { summary: "test" },
+        result: {
+          summary: "test",
+          tools: [{ name: "Next.js", category: "framework", reason: "Fast DX" }],
+          diagram: "graph TD; A-->B",
+          buildSteps: ["Step 1"],
+          tradeoffs: ["Tradeoff 1"],
+        },
       })
     );
 
     expect(res.status).toBe(500);
     const data = await res.json();
     expect(data.error).toBe("Failed to save stack");
+  });
+
+  it("returns 400 when result shape is invalid", async () => {
+    const res = await POST(
+      makePostRequest({
+        prompt: "Build a chatbot",
+        result: { summary: "missing required fields" },
+      })
+    );
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid data");
+  });
+
+  it("returns 400 for invalid JSON body", async () => {
+    const req = new NextRequest("http://localhost:3001/api/share", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{bad json",
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid JSON body");
   });
 });
 

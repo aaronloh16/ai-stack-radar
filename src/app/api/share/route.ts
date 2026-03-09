@@ -3,12 +3,24 @@ import { db } from "@/lib/db";
 import { sharedStacks } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { isSharedArchitectureResult } from "@/lib/architecture";
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt, result } = await request.json();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    if (!prompt || !result) {
+    const prompt =
+      typeof (body as { prompt?: unknown })?.prompt === "string"
+        ? (body as { prompt: string }).prompt.trim()
+        : "";
+    const result = (body as { result?: unknown })?.result;
+
+    if (!prompt || prompt.length > 2000 || !isSharedArchitectureResult(result)) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 

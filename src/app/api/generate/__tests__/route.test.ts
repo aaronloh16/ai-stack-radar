@@ -82,6 +82,25 @@ describe("POST /api/generate", () => {
     expect(data.error).toBe("Invalid prompt");
   });
 
+  it("returns 400 for whitespace-only prompt", async () => {
+    const res = await POST(makeRequest({ prompt: "   " }));
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid prompt");
+  });
+
+  it("returns 400 for invalid JSON body", async () => {
+    const req = new NextRequest("http://localhost:3001/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{bad json",
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid JSON body");
+  });
+
   it("accepts valid prompt and returns SSE stream", async () => {
     // Mock db to return empty tools list
     const { db } = await import("@/lib/db");
@@ -106,10 +125,6 @@ describe("POST /api/generate", () => {
             },
           },
         ],
-      })
-      // Stage 2: diagram generation
-      .mockResolvedValueOnce({
-        content: [{ type: "text", text: "graph TD\n  A-->B" }],
       });
 
     const res = await POST(makeRequest({ prompt: "Build a chatbot" }));

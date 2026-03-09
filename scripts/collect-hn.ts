@@ -1,6 +1,6 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { eq, and, gte, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { tools, hnSnapshots, momentumScores } from "../src/lib/schema";
 import { calculateHNBoost, calculateOverallScore, roundScore } from "../src/lib/scoring";
 
@@ -135,15 +135,20 @@ async function updateMomentumWithHN() {
     if (!latestMomentum) continue;
 
     const hnBoost = calculateHNBoost(latestHN.totalPoints, latestHN.mentionCount);
-    const overallScore = calculateOverallScore(latestMomentum.starVelocity, hnBoost);
+    const downloadBoost =
+      (latestMomentum.npmDownloads7d + latestMomentum.pypiDownloads7d) / 1000;
+    const overallScore = calculateOverallScore(
+      latestMomentum.starVelocity,
+      hnBoost + downloadBoost
+    );
 
     await db.insert(momentumScores).values({
       toolId: tool.id,
       starVelocity: latestMomentum.starVelocity,
       hnMentions7d: latestHN.mentionCount,
       hnPoints7d: latestHN.totalPoints,
-      npmDownloads7d: 0,
-      pypiDownloads7d: 0,
+      npmDownloads7d: latestMomentum.npmDownloads7d,
+      pypiDownloads7d: latestMomentum.pypiDownloads7d,
       overallScore: roundScore(overallScore),
     });
 

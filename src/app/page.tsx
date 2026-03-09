@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Trophy, Sparkles, TrendingUp, ArrowUpRight, Star, Radio, Zap } from "lucide-react";
+import { Trophy, Sparkles, ArrowUpRight, Star, Radio, Zap } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
