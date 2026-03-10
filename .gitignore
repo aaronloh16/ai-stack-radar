@@ -44,3 +44,6 @@ next-env.d.ts
 
 # drizzle
 drizzle/meta
+
+# claude code (personal project config)
+.claude/
