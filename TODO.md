@@ -16,7 +16,7 @@ Let users save tools from the leaderboard to a personal stack. No login required
 - [ ] `/my-stack` page with saved tools + rank, stars, velocity, score
 - [ ] Nav link
 
-See `PLAN-portfolio-pulse.md` Phase 1.
+See `PLAN-stack-pulse.md` Phase 1.
 
 ---
 
@@ -31,7 +31,7 @@ Generate a dark-themed PNG card of your stack with live data. Shareable on Twitt
 - [ ] "Copy link" + "Download card" buttons
 - [ ] `/my-stack?tools=1,5,11` query param for cookieless sharing
 
-See `PLAN-portfolio-pulse.md` Phase 2.
+See `PLAN-stack-pulse.md` Phase 2.
 
 ---
 
@@ -45,7 +45,7 @@ Let users submit tools we aren't tracking. GitHub API validation, manual review.
 - [ ] `/submit` page with form
 - [ ] Review via Drizzle Studio, approved tools added to `tools.json`
 
-See `PLAN-portfolio-pulse.md` Phase 3.
+See `PLAN-stack-pulse.md` Phase 3.
 
 ---
 
@@ -60,4 +60,4 @@ Track new releases. Show version badges. Feed into daily digest.
 - [ ] "v2.1" badge on leaderboard for releases in last 7 days
 - [ ] Pass releases as context to `generate-digest.ts`
 
-See `PLAN-portfolio-pulse.md` Phase 4.
+See `PLAN-stack-pulse.md` Phase 4.

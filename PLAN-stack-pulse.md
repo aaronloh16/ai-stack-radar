@@ -1,4 +1,4 @@
-# Portfolio Pulse — Revised Plan
+# Stack Pulse — Revised Plan
 
 ## Design Principles
 
