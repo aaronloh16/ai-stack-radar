@@ -37,14 +37,20 @@
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/typecheck.sh",
-            "timeout": 30,
-            "statusMessage": "Type-checking..."
-          },
-          {
-            "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/duplicate-query-guard.sh",
             "statusMessage": "Checking for duplicate query patterns..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/typecheck.sh",
+            "timeout": 60,
+            "statusMessage": "Running build type-check..."
           }
         ]
       }
