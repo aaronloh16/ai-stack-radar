@@ -688,5 +688,195 @@
     "hn_search_terms": ["kilo code", "kilocode"],
     "npm_package": null,
     "pypi_package": null
+  },
+  {
+    "name": "OpenAI Agents SDK",
+    "repo": "openai/openai-agents-python",
+    "category": "agents",
+    "description": "Production-ready SDK for building agentic AI apps with tool use and handoffs",
+    "website": "https://openai.github.io/openai-agents-python",
+    "hn_search_terms": ["openai agents sdk"],
+    "npm_package": null,
+    "pypi_package": "openai-agents"
+  },
+  {
+    "name": "Google ADK",
+    "repo": "google/adk-python",
+    "category": "agents",
+    "description": "Google's open-source multi-agent development kit",
+    "website": null,
+    "hn_search_terms": ["google adk", "agent development kit"],
+    "npm_package": null,
+    "pypi_package": "google-adk"
+  },
+  {
+    "name": "Stagehand",
+    "repo": "browserbasehq/stagehand",
+    "category": "agents",
+    "description": "AI-powered browser automation framework for web agents",
+    "website": "https://stagehand.dev",
+    "hn_search_terms": ["stagehand"],
+    "npm_package": "@browserbasehq/stagehand",
+    "pypi_package": null
+  },
+  {
+    "name": "Letta",
+    "repo": "letta-ai/letta",
+    "category": "memory",
+    "description": "Stateful agent platform with persistent memory, formerly MemGPT",
+    "website": "https://letta.com",
+    "hn_search_terms": ["letta", "memgpt"],
+    "npm_package": null,
+    "pypi_package": "letta"
+  },
+  {
+    "name": "Zep",
+    "repo": "getzep/zep",
+    "category": "memory",
+    "description": "Memory and knowledge graph platform for AI agents and assistants",
+    "website": "https://getzep.com",
+    "hn_search_terms": ["zep ai", "zep memory"],
+    "npm_package": "@getzep/zep-cloud",
+    "pypi_package": "zep-cloud"
+  },
+  {
+    "name": "FAISS",
+    "repo": "facebookresearch/faiss",
+    "category": "vector-db",
+    "description": "Meta's library for efficient similarity search and dense vector clustering",
+    "website": null,
+    "hn_search_terms": ["faiss"],
+    "npm_package": null,
+    "pypi_package": "faiss-cpu"
+  },
+  {
+    "name": "SGLang",
+    "repo": "sgl-project/sglang",
+    "category": "inference",
+    "description": "High-performance LLM serving framework used by xAI and Azure",
+    "website": null,
+    "hn_search_terms": ["sglang"],
+    "npm_package": null,
+    "pypi_package": "sglang"
+  },
+  {
+    "name": "TensorRT-LLM",
+    "repo": "NVIDIA/TensorRT-LLM",
+    "category": "inference",
+    "description": "NVIDIA's high-performance library for LLM inference optimization",
+    "website": null,
+    "hn_search_terms": ["tensorrt llm", "tensorrt-llm"],
+    "npm_package": null,
+    "pypi_package": "tensorrt-llm"
+  },
+  {
+    "name": "Llamafile",
+    "repo": "Mozilla-Ocho/llamafile",
+    "category": "inference",
+    "description": "Run LLMs from a single executable file, backed by Mozilla",
+    "website": null,
+    "hn_search_terms": ["llamafile"],
+    "npm_package": null,
+    "pypi_package": null
+  },
+  {
+    "name": "Pipecat",
+    "repo": "pipecat-ai/pipecat",
+    "category": "voice-ai",
+    "description": "Open-source framework for voice and multimodal conversational AI",
+    "website": "https://pipecat.ai",
+    "hn_search_terms": ["pipecat"],
+    "npm_package": null,
+    "pypi_package": "pipecat-ai"
+  },
+  {
+    "name": "LiveKit Agents",
+    "repo": "livekit/agents",
+    "category": "voice-ai",
+    "description": "Framework for building realtime AI agents with voice and video",
+    "website": "https://livekit.io",
+    "hn_search_terms": ["livekit agents", "livekit"],
+    "npm_package": "@livekit/agents",
+    "pypi_package": "livekit-agents"
+  },
+  {
+    "name": "Langflow",
+    "repo": "langflow-ai/langflow",
+    "category": "platform",
+    "description": "Visual AI workflow builder with 100K+ GitHub stars",
+    "website": "https://langflow.org",
+    "hn_search_terms": ["langflow"],
+    "npm_package": null,
+    "pypi_package": "langflow"
+  },
+  {
+    "name": "Chainlit",
+    "repo": "Chainlit/chainlit",
+    "category": "ui",
+    "description": "Framework for building production-ready conversational AI interfaces",
+    "website": "https://chainlit.io",
+    "hn_search_terms": ["chainlit"],
+    "npm_package": null,
+    "pypi_package": "chainlit"
+  },
+  {
+    "name": "Gradio",
+    "repo": "gradio-app/gradio",
+    "category": "ui",
+    "description": "Python framework for building interactive ML and AI demo interfaces",
+    "website": "https://gradio.app",
+    "hn_search_terms": ["gradio"],
+    "npm_package": null,
+    "pypi_package": "gradio"
+  },
+  {
+    "name": "Streamlit",
+    "repo": "streamlit/streamlit",
+    "category": "ui",
+    "description": "Python framework for building data apps and AI prototypes",
+    "website": "https://streamlit.io",
+    "hn_search_terms": ["streamlit"],
+    "npm_package": null,
+    "pypi_package": "streamlit"
+  },
+  {
+    "name": "Repomix",
+    "repo": "yamadashy/repomix",
+    "category": "data-processing",
+    "description": "Pack entire repositories into AI-friendly single files with token counting",
+    "website": null,
+    "hn_search_terms": ["repomix"],
+    "npm_package": "repomix",
+    "pypi_package": null
+  },
+  {
+    "name": "OpenLLMetry",
+    "repo": "traceloop/openllmetry",
+    "category": "observability",
+    "description": "OpenTelemetry-based observability and instrumentation for LLM apps",
+    "website": "https://traceloop.com",
+    "hn_search_terms": ["openllmetry", "traceloop"],
+    "npm_package": "@traceloop/node-server-sdk",
+    "pypi_package": "traceloop-sdk"
+  },
+  {
+    "name": "SWE-agent",
+    "repo": "SWE-agent/SWE-agent",
+    "category": "dev-tools",
+    "description": "Autonomous software engineering agent from Princeton NLP",
+    "website": "https://swe-agent.com",
+    "hn_search_terms": ["swe-agent", "swe agent"],
+    "npm_package": null,
+    "pypi_package": "sweagent"
+  },
+  {
+    "name": "Open WebUI Pipelines",
+    "repo": "open-webui/pipelines",
+    "category": "platform",
+    "description": "Plugin framework for Open WebUI with modular AI workflows",
+    "website": "https://openwebui.com",
+    "hn_search_terms": ["open webui pipelines"],
+    "npm_package": null,
+    "pypi_package": null
   }
 ]

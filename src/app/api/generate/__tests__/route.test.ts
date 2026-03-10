@@ -54,6 +54,8 @@ describe("POST /api/generate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetTools.mockResolvedValue([]);
+    // Set API key so tests reach the Anthropic code path
+    process.env.ANTHROPIC_API_KEY = "test-key";
   });
 
   it("returns 400 when prompt is missing", async () => {

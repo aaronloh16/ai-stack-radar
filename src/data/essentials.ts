@@ -67,8 +67,8 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
       {
         name: "Windsurf",
         description:
-          "AI-powered IDE by Codeium with flows-based agentic coding",
-        tier: "rising",
+          "AI-powered IDE with built-in everything — lowest barrier to start coding with AI",
+        tier: "essential",
         url: "https://windsurf.com",
         repo: null,
       },
@@ -100,7 +100,7 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         name: "Cline",
         description:
           "Autonomous AI coding agent for VS Code with tool use and browser control",
-        tier: "worth-watching",
+        tier: "rising",
         url: "https://cline.bot",
         repo: "cline/cline",
       },
@@ -145,8 +145,8 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
       {
         name: "Replit Agent",
         description:
-          "Browser-based IDE with AI agent that plans, builds, and deploys full apps",
-        tier: "rising",
+          "Browser-based IDE with AI agent — best for beginners who want to learn while building",
+        tier: "essential",
         url: "https://replit.com",
         repo: null,
       },
@@ -189,12 +189,20 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         repo: "browser-use/browser-use",
       },
       {
+        name: "Stagehand",
+        description:
+          "AI-powered browser automation framework for building web agents",
+        tier: "rising",
+        url: "https://stagehand.dev",
+        repo: "browserbasehq/stagehand",
+      },
+      {
         name: "SWE-agent",
         description:
           "Princeton's agent for automatically resolving GitHub issues",
         tier: "worth-watching",
         url: "https://swe-agent.com",
-        repo: "princeton-nlp/SWE-agent",
+        repo: "SWE-agent/SWE-agent",
       },
     ],
   },
@@ -219,6 +227,14 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         repo: "crewAIInc/crewAI",
       },
       {
+        name: "OpenAI Agents SDK",
+        description:
+          "Production-ready SDK for building agentic apps with tool use and handoffs",
+        tier: "rising",
+        url: "https://openai.github.io/openai-agents-python",
+        repo: "openai/openai-agents-python",
+      },
+      {
         name: "AutoGen",
         description:
           "Microsoft's framework for building multi-agent conversational systems",
@@ -235,6 +251,14 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         repo: "pydantic/pydantic-ai",
       },
       {
+        name: "Google ADK",
+        description:
+          "Google's open-source multi-agent development kit for building AI agents",
+        tier: "rising",
+        url: "https://github.com/google/adk-python",
+        repo: "google/adk-python",
+      },
+      {
         name: "Smolagents",
         description:
           "Hugging Face's lightweight library for building capable AI agents",
@@ -243,18 +267,10 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         repo: "huggingface/smolagents",
       },
       {
-        name: "OpenAI Swarm",
-        description:
-          "Experimental framework for multi-agent orchestration by OpenAI",
-        tier: "worth-watching",
-        url: "https://github.com/openai/swarm",
-        repo: "openai/swarm",
-      },
-      {
         name: "Mastra",
         description:
-          "TypeScript AI framework for building agents, workflows, and RAG pipelines",
-        tier: "worth-watching",
+          "TypeScript-first AI framework — great for JS/TS developers building agents",
+        tier: "rising",
         url: "https://mastra.ai",
         repo: "mastra-ai/mastra",
       },
@@ -267,8 +283,8 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
       {
         name: "LangChain",
         description:
-          "Framework for developing applications powered by language models",
-        tier: "essential",
+          "Largest LLM framework ecosystem with 500+ integrations — powerful but complex",
+        tier: "rising",
         url: "https://langchain.com",
         repo: "langchain-ai/langchain",
       },
@@ -283,8 +299,8 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
       {
         name: "LlamaIndex",
         description:
-          "Data framework for LLM-based applications with data connectors",
-        tier: "rising",
+          "Best-in-class framework for RAG — connect your data to LLMs with ease",
+        tier: "essential",
         url: "https://llamaindex.ai",
         repo: "run-llama/llama_index",
       },
@@ -343,10 +359,18 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         repo: "ggerganov/llama.cpp",
       },
       {
+        name: "SGLang",
+        description:
+          "High-performance LLM serving framework used by xAI and Azure",
+        tier: "rising",
+        url: "https://github.com/sgl-project/sglang",
+        repo: "sgl-project/sglang",
+      },
+      {
         name: "LM Studio",
         description:
-          "Desktop app for running local LLMs with a user-friendly interface",
-        tier: "worth-watching",
+          "Desktop app for running local LLMs — easiest GUI for beginners, no terminal needed",
+        tier: "rising",
         url: "https://lmstudio.ai",
         repo: null,
       },
@@ -357,6 +381,22 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         tier: "worth-watching",
         url: "https://localai.io",
         repo: "mudler/LocalAI",
+      },
+      {
+        name: "Llamafile",
+        description:
+          "Run LLMs from a single executable file, backed by Mozilla",
+        tier: "worth-watching",
+        url: "https://github.com/Mozilla-Ocho/llamafile",
+        repo: "Mozilla-Ocho/llamafile",
+      },
+      {
+        name: "TensorRT-LLM",
+        description:
+          "NVIDIA's high-performance inference library for GPU-accelerated LLMs",
+        tier: "worth-watching",
+        url: "https://github.com/NVIDIA/TensorRT-LLM",
+        repo: "NVIDIA/TensorRT-LLM",
       },
     ],
   },
@@ -391,10 +431,18 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
       {
         name: "Weaviate",
         description:
-          "AI-native vector database with built-in hybrid search",
-        tier: "rising",
+          "AI-native vector database with best-in-class docs — build RAG in an afternoon",
+        tier: "essential",
         url: "https://weaviate.io",
         repo: "weaviate/weaviate",
+      },
+      {
+        name: "FAISS",
+        description:
+          "Meta's library for efficient similarity search and dense vector clustering",
+        tier: "rising",
+        url: "https://github.com/facebookresearch/faiss",
+        repo: "facebookresearch/faiss",
       },
       {
         name: "Milvus",
@@ -451,6 +499,14 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         repo: "Arize-ai/phoenix",
       },
       {
+        name: "Promptfoo",
+        description:
+          "Test and evaluate LLM prompts, agents, and models — essential for shipping AI apps",
+        tier: "essential",
+        url: "https://promptfoo.dev",
+        repo: "promptfoo/promptfoo",
+      },
+      {
         name: "Helicone",
         description:
           "Open-source LLM observability with logging, caching, and rate limiting",
@@ -465,6 +521,14 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         tier: "worth-watching",
         url: "https://deepeval.com",
         repo: "confident-ai/deepeval",
+      },
+      {
+        name: "OpenLLMetry",
+        description:
+          "OpenTelemetry-based instrumentation for LLM applications",
+        tier: "worth-watching",
+        url: "https://traceloop.com",
+        repo: "traceloop/openllmetry",
       },
     ],
   },
@@ -503,6 +567,14 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         tier: "rising",
         url: "https://ds4sd.github.io/docling/",
         repo: "DS4SD/docling",
+      },
+      {
+        name: "Repomix",
+        description:
+          "Pack entire repos into AI-friendly single files with token counting",
+        tier: "rising",
+        url: "https://github.com/yamadashy/repomix",
+        repo: "yamadashy/repomix",
       },
       {
         name: "RAGFlow",
@@ -545,10 +617,18 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
       {
         name: "Flowise",
         description:
-          "Drag-and-drop UI for building customized LLM flows",
-        tier: "rising",
+          "Drag-and-drop UI for building LLM flows — easiest way to prototype AI chains",
+        tier: "essential",
         url: "https://flowiseai.com",
         repo: "FlowiseAI/Flowise",
+      },
+      {
+        name: "Langflow",
+        description:
+          "Visual AI workflow builder with drag-and-drop components",
+        tier: "rising",
+        url: "https://langflow.org",
+        repo: "langflow-ai/langflow",
       },
     ],
   },
@@ -631,12 +711,28 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
     label: "Memory",
     tools: [
       {
+        name: "Letta",
+        description:
+          "Stateful agent platform with persistent memory, formerly MemGPT",
+        tier: "essential",
+        url: "https://letta.com",
+        repo: "letta-ai/letta",
+      },
+      {
         name: "Mem0",
         description:
           "Memory layer for AI assistants — adds persistent personalization",
         tier: "rising",
         url: "https://mem0.ai",
         repo: "mem0ai/mem0",
+      },
+      {
+        name: "Zep",
+        description:
+          "Memory and knowledge graph platform for AI agents and assistants",
+        tier: "rising",
+        url: "https://getzep.com",
+        repo: "getzep/zep",
       },
     ],
   },
@@ -651,6 +747,82 @@ export const ESSENTIALS_CATEGORIES: EssentialsCategory[] = [
         tier: "rising",
         url: "https://e2b.dev",
         repo: "e2b-dev/E2B",
+      },
+    ],
+  },
+  {
+    id: "voice-ai",
+    label: "Voice AI",
+    tools: [
+      {
+        name: "Pipecat",
+        description:
+          "Open-source framework for voice and multimodal conversational AI",
+        tier: "essential",
+        url: "https://pipecat.ai",
+        repo: "pipecat-ai/pipecat",
+      },
+      {
+        name: "LiveKit Agents",
+        description:
+          "Framework for building realtime AI agents with voice and video",
+        tier: "rising",
+        url: "https://livekit.io",
+        repo: "livekit/agents",
+      },
+      {
+        name: "ElevenLabs",
+        description:
+          "Voice AI platform with lifelike speech synthesis in 30+ languages",
+        tier: "rising",
+        url: "https://elevenlabs.io",
+        repo: null,
+      },
+    ],
+  },
+  {
+    id: "chat-uis",
+    label: "Chat UIs & Frontends",
+    tools: [
+      {
+        name: "Open WebUI",
+        description:
+          "Self-hosted WebUI for LLMs with plugin system and RAG support",
+        tier: "essential",
+        url: "https://openwebui.com",
+        repo: "open-webui/open-webui",
+      },
+      {
+        name: "Gradio",
+        description:
+          "Python framework for building interactive ML and AI demo interfaces",
+        tier: "essential",
+        url: "https://gradio.app",
+        repo: "gradio-app/gradio",
+      },
+      {
+        name: "Streamlit",
+        description:
+          "Python framework for building data apps and AI prototypes",
+        tier: "rising",
+        url: "https://streamlit.io",
+        repo: "streamlit/streamlit",
+      },
+      {
+        name: "Chainlit",
+        description:
+          "Framework for building production-ready conversational AI interfaces",
+        tier: "rising",
+        url: "https://chainlit.io",
+        repo: "Chainlit/chainlit",
+      },
+      {
+        name: "Lobe Chat",
+        description:
+          "Modern LLM chat framework with plugin system and multi-model support",
+        tier: "worth-watching",
+        url: "https://lobehub.com",
+        repo: "lobehub/lobe-chat",
       },
     ],
   },

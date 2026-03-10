@@ -18,6 +18,7 @@ export const CATEGORIES: Record<string, string> = {
   memory: "Memory",
   evaluation: "Evaluation",
   rag: "RAG",
+  "voice-ai": "Voice AI",
 };
 
 export const CATEGORY_ORDER = Object.keys(CATEGORIES);

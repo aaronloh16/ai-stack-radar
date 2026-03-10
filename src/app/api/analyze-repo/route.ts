@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import type Anthropic from "@anthropic-ai/sdk";
 import { validateMermaidSyntax, stripMermaidCodeFences } from "@/lib/mermaid-validate";
 import { getToolsWithLatestMetrics } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const anthropic = new Anthropic();
+// Lazy-init: only creates client when ANTHROPIC_API_KEY is set
+async function getAnthropicClient() {
+  const { default: AnthropicSDK } = await import("@anthropic-ai/sdk");
+  return new AnthropicSDK();
+}
 
 function parseGitHubUrl(url: string): { owner: string; repo: string } | null {
   const match = url.match(
@@ -167,6 +171,17 @@ const ANALYSIS_TOOL: Anthropic.Tool = {
 };
 
 export async function POST(request: NextRequest) {
+  // Anthropic API disabled — return friendly message
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json(
+      {
+        error:
+          "Stack health analysis is temporarily disabled. Set ANTHROPIC_API_KEY to enable.",
+      },
+      { status: 503 }
+    );
+  }
+
   try {
     const { repoUrl } = await request.json();
 
@@ -216,6 +231,7 @@ export async function POST(request: NextRequest) {
       )
       .join("\n");
 
+    const anthropic = await getAnthropicClient();
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
@@ -272,7 +288,9 @@ Mermaid syntax rules:
     let diagram = stripMermaidCodeFences(String(result.diagram ?? ""));
     const validation = await validateMermaidSyntax(diagram);
     if (!validation.valid) {
-      const fixResponse = await anthropic.messages.create({
+      const fixResponse = await (
+        await getAnthropicClient()
+      ).messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 2048,
         messages: [

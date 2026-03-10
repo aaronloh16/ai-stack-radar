@@ -11,7 +11,7 @@ export function LeaderboardTabs({ activeView }: { activeView: View }) {
   function switchView(view: View) {
     if (view === activeView) return;
     router.push(
-      view === "essentials" ? "/leaderboard?view=essentials" : "/leaderboard"
+      view === "momentum" ? "/leaderboard?view=momentum" : "/leaderboard"
     );
   }
 

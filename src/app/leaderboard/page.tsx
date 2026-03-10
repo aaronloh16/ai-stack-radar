@@ -12,17 +12,17 @@ export async function generateMetadata({
   searchParams: Promise<{ view?: string }>;
 }): Promise<Metadata> {
   const { view } = await searchParams;
-  if (view === "essentials") {
+  if (view === "momentum") {
     return {
-      title: "Developer Essentials | AI Stack Radar",
+      title: "Momentum Leaderboard | AI Stack Radar",
       description:
-        "Curated AI dev tools organized by use case with tier ratings.",
+        "AI dev tools ranked by real developer sentiment. Updated daily.",
     };
   }
   return {
-    title: "Momentum Leaderboard | AI Stack Radar",
+    title: "Developer Essentials | AI Stack Radar",
     description:
-      "AI dev tools ranked by real developer sentiment. Updated daily.",
+      "Curated AI dev tools organized by use case with tier ratings.",
   };
 }
 
@@ -83,7 +83,7 @@ export default async function LeaderboardPage({
   searchParams: Promise<{ view?: string }>;
 }) {
   const { view } = await searchParams;
-  const activeView = view === "essentials" ? "essentials" : "momentum";
+  const activeView = view === "momentum" ? "momentum" : "essentials";
 
   const tools = activeView === "momentum" ? await getLeaderboardData() : [];
 

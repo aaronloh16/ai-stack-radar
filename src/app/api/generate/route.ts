@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import type Anthropic from "@anthropic-ai/sdk";
 import { sseMessage } from "@/lib/sse";
 import {
   isGeneratedArchitectureResult,
@@ -10,7 +10,11 @@ import { getToolsWithLatestMetrics } from "@/lib/queries";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const anthropic = new Anthropic();
+// Lazy-init: only creates client when ANTHROPIC_API_KEY is set
+async function getAnthropicClient() {
+  const { default: AnthropicSDK } = await import("@anthropic-ai/sdk");
+  return new AnthropicSDK();
+}
 
 async function getLeaderboardContext(): Promise<string> {
   const allTools = await getToolsWithLatestMetrics();
@@ -93,6 +97,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid prompt" }, { status: 400 });
   }
 
+  // Anthropic API disabled — return friendly message (after input validation)
+  if (!process.env.ANTHROPIC_API_KEY) {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode(
+            sseMessage({
+              status: "error",
+              error:
+                "Architecture generation is temporarily disabled. Set ANTHROPIC_API_KEY to enable.",
+            })
+          )
+        );
+        controller.close();
+      },
+    });
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -110,6 +140,7 @@ export async function POST(request: NextRequest) {
           message: "Selecting tools and designing architecture...",
         });
 
+        const anthropic = await getAnthropicClient();
         const stage1Response = await anthropic.messages.create({
           model: "claude-sonnet-4-20250514",
           max_tokens: 3072,
