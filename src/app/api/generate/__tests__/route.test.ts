@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
-// Mock db before importing route
-vi.mock("@/lib/db", () => ({
-  db: {
-    select: vi.fn(),
-  },
+// Mock getToolsWithLatestMetrics (replaces old db mock)
+const { mockGetTools } = vi.hoisted(() => ({
+  mockGetTools: vi.fn(),
+}));
+
+vi.mock("@/lib/queries", () => ({
+  getToolsWithLatestMetrics: mockGetTools,
 }));
 
 // Mock mermaid validation (uses dynamic import which is problematic in tests)
@@ -15,7 +17,6 @@ vi.mock("@/lib/mermaid-validate", () => ({
 }));
 
 // Mock Anthropic SDK — must be a class since route does `new Anthropic()`
-// Use vi.hoisted so the variable is available inside the vi.mock factory
 const { mockCreate } = vi.hoisted(() => ({
   mockCreate: vi.fn(),
 }));
@@ -52,6 +53,7 @@ async function readStream(res: Response): Promise<string> {
 describe("POST /api/generate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetTools.mockResolvedValue([]);
   });
 
   it("returns 400 when prompt is missing", async () => {
@@ -102,30 +104,22 @@ describe("POST /api/generate", () => {
   });
 
   it("accepts valid prompt and returns SSE stream", async () => {
-    // Mock db to return empty tools list
-    const { db } = await import("@/lib/db");
-    vi.mocked(db.select).mockReturnValue({
-      from: vi.fn().mockResolvedValue([]),
-    } as never);
-
-    // Mock Anthropic responses
-    mockCreate
-      // Stage 1: tool selection
-      .mockResolvedValueOnce({
-        content: [
-          {
-            type: "tool_use",
-            name: "describe_architecture",
-            input: {
-              summary: "Test summary",
-              tools: [{ name: "TestTool", category: "test", reason: "testing" }],
-              diagramDescription: "A simple diagram",
-              buildSteps: ["Step 1"],
-              tradeoffs: ["Tradeoff 1"],
-            },
+    // Mock Anthropic response
+    mockCreate.mockResolvedValueOnce({
+      content: [
+        {
+          type: "tool_use",
+          name: "describe_architecture",
+          input: {
+            summary: "Test summary",
+            tools: [{ name: "TestTool", category: "test", reason: "testing" }],
+            diagramDescription: "A simple diagram",
+            buildSteps: ["Step 1"],
+            tradeoffs: ["Tradeoff 1"],
           },
-        ],
-      });
+        },
+      ],
+    });
 
     const res = await POST(makeRequest({ prompt: "Build a chatbot" }));
     expect(res.status).toBe(200);
@@ -139,11 +133,6 @@ describe("POST /api/generate", () => {
   });
 
   it("streams error when Anthropic returns no tool_use block", async () => {
-    const { db } = await import("@/lib/db");
-    vi.mocked(db.select).mockReturnValue({
-      from: vi.fn().mockResolvedValue([]),
-    } as never);
-
     mockCreate.mockResolvedValueOnce({
       content: [{ type: "text", text: "I cannot help with that" }],
     });
@@ -153,11 +142,8 @@ describe("POST /api/generate", () => {
     expect(fullText).toContain('"status":"error"');
   });
 
-  it("streams error when DB query fails", async () => {
-    const { db } = await import("@/lib/db");
-    vi.mocked(db.select).mockReturnValue({
-      from: vi.fn().mockRejectedValue(new Error("DB connection failed")),
-    } as never);
+  it("streams error when query fails", async () => {
+    mockGetTools.mockRejectedValue(new Error("DB connection failed"));
 
     const res = await POST(makeRequest({ prompt: "Build a chatbot" }));
     const fullText = await readStream(res);
