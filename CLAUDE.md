@@ -165,7 +165,9 @@ npx npm-check-updates -u             # Update all deps to latest versions
 
 ### Verification
 
-- **`npm run build` is the primary check.** TypeScript compilation catches most issues. Run it after every change.
+- **`npm run test` after any code change.** Always run the test suite after modifying source files. Tests must pass before committing. If tests fail, fix them before moving on — never leave broken tests for a later commit.
+- **`npm run build` is the primary type-check.** TypeScript compilation catches most issues. Run it after every change.
 - **`npm run lint` for style issues.** Run before committing.
 - **Test data pipeline changes** with `npm run collect:github` (or `collect:hn`) against the real DB. The scripts are idempotent — safe to re-run.
 - **Browser-check UI changes.** Screenshots and snapshots catch layout issues that types can't.
+- **When refactoring shared code** (e.g., extracting helpers, changing function signatures), check and update the corresponding test mocks. Tests that mock the old interface will break silently or fail in CI.
