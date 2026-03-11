@@ -23,7 +23,7 @@ Collection scripts also seed the `tools` table from `src/data/tools.json` on fir
 
 ## Architecture
 
-**Two-feature product:** a momentum leaderboard (daily-updated tool rankings) and an architecture generator (Claude-powered stack recommendations using live leaderboard data as context).
+**DevFlow** is a community-driven platform for AI dev workflows — how engineers actually use AI tools to ship. Core features: a workflow library with upvotes and submission, a momentum leaderboard (daily-updated tool rankings), and an architecture generator (Claude-powered stack recommendations using live leaderboard data as context).
 
 ### Data Flow
 
@@ -50,6 +50,10 @@ overall_score = star_velocity + hn_boost
 - **Shared stacks:** Stored with nanoid(10) IDs in `shared_stacks` table. Shareable at `/stack/[id]`.
 - **Stack health analysis:** `/analyze` page fetches repo dependency files via GitHub API, cross-references against momentum leaderboard, generates health report with Claude.
 - **GitHub Actions:** `.github/workflows/collect-data.yml` runs both collectors daily at 6am UTC. Requires `DATABASE_URL` and `GITHUB_TOKEN` secrets.
+- **Community tables:** `users`, `workflows`, `workflowTools`, `upvotes`, `stackCombos`, `stackComboTools` — all additive, existing tables untouched.
+- **Anonymous fingerprinting:** SHA-256 of IP + User-Agent for upvote deduplication. No auth, no cookies.
+- **Workflow submission:** Multi-step form (basics → tools → steps → results → review) posts to `/api/workflows`. Server slugifies title, upserts user by fingerprint, inserts workflow + tool links.
+- **Upvote system:** Toggle endpoint at `/api/upvote` — inserts or deletes from `upvotes` table, updates denormalized `upvoteCount` on target.
 
 ### Environment Variables
 

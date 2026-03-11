@@ -1,15 +1,24 @@
-# AI Stack Radar
+# DevFlow
 
-AI dev tool leaderboard + architecture generator backed by live developer sentiment data.
+See how top engineers actually use AI to ship — real tool setups, techniques, and workflows from the developers building with it.
 
 ## Features
 
-### Momentum Leaderboard
+### Workflow Library
 
-Ranks AI dev tools by real developer sentiment using:
+Community-submitted AI dev workflows — the exact tools, setups, and step-by-step techniques real engineers use day-to-day. Browse, upvote, and copy what works.
+
+### Workflow Submission
+
+Multi-step form for sharing your own AI workflow: describe your setup, select the tools you use, walk through the steps, and publish it for the community.
+
+### Tool Leaderboard
+
+Ranks AI dev tools by real developer momentum using:
 
 - GitHub star velocity
 - Hacker News activity
+- npm/PyPI download trends
 
 Updated daily via GitHub Actions.
 
@@ -17,7 +26,7 @@ Updated daily via GitHub Actions.
 
 Describe what you want to build and get back:
 
-- Recommended tech stack based on live sentiment data
+- Recommended tech stack based on live momentum data
 - Mermaid.js architecture diagram
 - Step-by-step build instructions
 
@@ -30,6 +39,7 @@ Powered by Anthropic's Claude with live leaderboard data as context.
 - **Data Collection**: TypeScript scripts (GitHub API, HN Algolia API)
 - **Automation**: GitHub Actions (daily cron)
 - **AI**: Anthropic API (Claude with structured output)
+- **Fonts**: Syne (display) + JetBrains Mono (data)
 
 ## Setup
 
@@ -60,7 +70,7 @@ Powered by Anthropic's Claude with live leaderboard data as context.
 
 ## Project Philosophy
 
-Open source scoring algorithm to maintain community trust and drive adoption. Deployed product provides the value-add services on top.
+Open source scoring algorithm to maintain community trust. Community-driven workflow submissions to capture how developers actually work with AI tools — not theory, just what ships.
 
 ---
 
