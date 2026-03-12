@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { LeaderboardTabs } from "@/components/leaderboard-tabs";
 import { EssentialsView } from "@/components/essentials-view";
+import { WeeklySummaryCard } from "@/components/weekly-summary";
 import { Trophy, BookOpen } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +86,16 @@ export default async function LeaderboardPage({
 
   const tools = activeView === "momentum" ? await getLeaderboardData() : [];
 
+  let weeklySummary = null;
+  if (activeView === "momentum" && tools.length > 0) {
+    try {
+      const { getWeeklySummaryData } = await import("@/lib/queries");
+      weeklySummary = await getWeeklySummaryData();
+    } catch {
+      // Summary is non-critical, page works without it
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
       <div className="mb-10 animate-fade-in-up">
@@ -132,9 +143,16 @@ export default async function LeaderboardPage({
 
       {activeView === "momentum" ? (
         tools.length > 0 ? (
-          <div className="animate-fade-in-up delay-100">
-            <LeaderboardTable initialTools={tools} />
-          </div>
+          <>
+            {weeklySummary && (
+              <div className="animate-fade-in-up delay-100">
+                <WeeklySummaryCard data={weeklySummary} />
+              </div>
+            )}
+            <div className="animate-fade-in-up delay-200">
+              <LeaderboardTable initialTools={tools} />
+            </div>
+          </>
         ) : (
           <div className="text-center py-24" style={{ color: "var(--text-tertiary)" }}>
             <p className="text-base mb-2" style={{ color: "var(--text-secondary)" }}>
