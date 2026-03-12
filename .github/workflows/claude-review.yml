@@ -8,6 +8,7 @@ jobs:
   review:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    continue-on-error: true
     permissions:
       contents: read
       pull-requests: write
@@ -17,7 +18,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Check for API key
+        id: check-key
+        run: |
+          if [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Claude review — ANTHROPIC_API_KEY not configured"
+          fi
       - uses: anthropics/claude-code-action@beta
+        if: steps.check-key.outputs.has_key == 'true'
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           direct_prompt: |
