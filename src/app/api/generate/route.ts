@@ -6,6 +6,7 @@ import {
   type GeneratedArchitectureResult,
 } from "@/lib/architecture";
 import { getToolsWithLatestMetrics } from "@/lib/queries";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -97,30 +98,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid prompt" }, { status: 400 });
   }
 
-  // Anthropic API disabled — return friendly message (after input validation)
+  // Rate limit: 10 requests per minute per IP
+  const clientIp = getClientIp(request);
+  const { allowed, retryAfterMs } = checkRateLimit(clientIp, {
+    maxRequests: 10,
+    windowMs: 60_000,
+  });
+
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) },
+      }
+    );
+  }
+
   if (!process.env.ANTHROPIC_API_KEY) {
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(
-          encoder.encode(
-            sseMessage({
-              status: "error",
-              error:
-                "Architecture generation is temporarily disabled. Set ANTHROPIC_API_KEY to enable.",
-            })
-          )
-        );
-        controller.close();
-      },
-    });
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    });
+    return NextResponse.json(
+      { error: "Architecture generation is not configured." },
+      { status: 503 }
+    );
   }
 
   const encoder = new TextEncoder();
@@ -201,7 +200,17 @@ Project description: ${prompt}`,
         });
       } catch (error) {
         console.error("Generate API error:", error);
-        send({ status: "error", error: "Failed to generate architecture" });
+        let message = "Failed to generate architecture. Please try again.";
+        if (error instanceof Error) {
+          if (error.name === "AbortError" || error.message.includes("timeout")) {
+            message = "Request timed out. Please try a simpler prompt.";
+          } else if ("status" in error && (error as { status: number }).status === 429) {
+            message = "AI service is busy. Please try again in a moment.";
+          } else if ("status" in error && (error as { status: number }).status >= 500) {
+            message = "AI service is temporarily unavailable. Please try again later.";
+          }
+        }
+        send({ status: "error", error: message });
       } finally {
         controller.close();
       }
