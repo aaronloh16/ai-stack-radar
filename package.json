@@ -15,6 +15,7 @@
     "collect:hn": "tsx scripts/collect-hn.ts",
     "collect:downloads": "tsx scripts/collect-downloads.ts",
     "collect:all": "tsx scripts/collect-github.ts && tsx scripts/collect-hn.ts && tsx scripts/collect-downloads.ts",
+    "db:seed": "tsx scripts/seed-workflows.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
